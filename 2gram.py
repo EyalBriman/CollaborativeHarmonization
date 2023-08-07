@@ -1,4 +1,5 @@
 import json
+import numpy
 
 all_valid_qualities = {'': '^', '5': '^', '2': '^', 'add9': '^', '+': '+', 'o': 'o', 'h': 'o', 'sus': '^', '^': '^',
                        '-': '-', '^7': '^7', '-7': '-7', '7': '7', '7sus': '7', 'h7': '-7b5', 'o7': 'o7', 'o^7': 'o7',
@@ -17,6 +18,8 @@ all_pitches_reverse = {0: 'C', 1: 'C#', 2: 'D', 3: 'D#', 4: 'E', 5: 'F', 6: 'F#'
                        10: 'A#', 11: 'B'}
 
 all_valid_chords = None
+epsilon = 1e-8
+lepsilon = numpy.log(epsilon)
 
 
 def back_translate_chord(pair):
@@ -40,20 +43,25 @@ def translate_chord(chord):
     return all_valid_chords[chord]
 
 
-def create_2_gram_probability(songs):
+def get_chords(song):
+    chords = []
+    for measure in song:
+        chords += filter(lambda x: x, [translate_chord(chord) for chord in measure])
+    return chords
+
+
+def create_2_gram_probability(songs, distance=1):
     chord_counts = {}
     chord_followers = {}
 
     for song in songs:
-        chords = []
-        for measure in song:
-            chords += filter(lambda x: x, [translate_chord(chord) for chord in measure])
+        chords = get_chords(song)
         for chord_diff in range(12):
             for i in range(len(chords)):
                 chords[i] = ((chords[i][0] + 1) % 12, chords[i][1])
-            for i in range(len(chords) - 1):
+            for i in range(len(chords) - distance):
                 current_chord = chords[i]
-                next_chord = chords[i + 1]
+                next_chord = chords[i + distance]
 
                 if current_chord not in chord_counts:
                     chord_counts[current_chord] = 0
@@ -71,26 +79,60 @@ def create_2_gram_probability(songs):
     for chord, count in chord_counts.items():
         chord_probabilities[chord] = {}
         for follower, follower_count in chord_followers[chord].items():
-            chord_probabilities[chord][follower] = follower_count / count
+            chord_probabilities[chord][follower] = numpy.log(follower_count / count + epsilon)
 
     return chord_probabilities
 
 
-def run_2gram_on_file(filename):
-    # Load the songs data from the JSON file
-    with open(filename, "r") as file:
-        songs_data = json.load(file)
+def combine_probabilities(x):
+    return sum(x) / len(x)
 
-    return create_2_gram_probability(songs_data)
+
+def get_song_probability(song, probs):
+    chords = get_chords(song)
+    x = []
+    for i in range(len(chords) - 1):
+        y = []
+        for d in range(len(probs)):
+            try:
+                if i + d + 1 < len(chords):
+                    y.append(probs[d][chords[i]][chords[i + d + 1]])
+            except KeyError:
+                y.append(lepsilon)
+        x.append(combine_probabilities(y))
+    return combine_probabilities(x)
+
+
+def run_k_fold(songs, k=1, distance=1):
+    x = []
+    for i in range(0, len(songs), k):
+        ik = min(i + k, len(songs))
+        probs = []
+        for d in range(1, distance + 1):
+            probs.append(create_2_gram_probability(songs[:i] + songs[ik:], d))
+        x.append(combine_probabilities([get_song_probability(song, probs) for song in songs[i:ik]]))
+    return combine_probabilities(x)
 
 
 def print_log(chord_probabilities):
     # Example output for the final 2-gram model
     for chord, followers in chord_probabilities.items():
         print(f"Chord: {back_translate_chord(chord)}")
-        for follower, probability in followers.items():
-            print(f"  -> {back_translate_chord(follower)}: Probability: {probability:.3f}")
+        for follower, lprobability in followers.items():
+            print(f"  -> {back_translate_chord(follower)}: Probability: {numpy.exp(lprobability):.3f}")
+
+
+def test_grams(songs, n=3, k=10):
+    for i in range(1, n + 1):
+        print('Distance up to ', n, ' log probability:', run_k_fold(songs, k, i))
+
+
+def load_songs():
+    with open('songs.json', "r") as file:
+        return json.load(file)
 
 
 if __name__ == '__main__':
-    print_log(run_2gram_on_file('songs.json'))
+    s = load_songs()
+    print_log(create_2_gram_probability(s))
+    test_grams(s)
