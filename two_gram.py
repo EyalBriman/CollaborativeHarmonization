@@ -1,11 +1,12 @@
 import json
 import numpy
+from DistanceOfTwoChords import *
 
 all_valid_qualities = {'': '^', '5': '^', '2': '^', 'add9': '^', '+': '+', 'o': 'o', 'h': 'o', 'sus': '^', '^': '^',
                        '-': '-', '^7': '^7', '-7': '-7', '7': '7', '7sus': '7', 'h7': '-7b5', 'o7': 'o7', 'o^7': 'o7',
-                       '^9': '^7', '^13': '^7', '6': '^6', '69': '^6', '^7#11': '^7', '^9#11': '^7', '^7#5': '+^7',
+                       '^9': '^7', '^13': '^7', '6': '^6', '69': '^6', '^7#11': '^7', '^9#11': '^7', '^7#5': '+',
                        '-6': '-6', '-69': '-6', '-^7': '-^7', '-^9': '-^7', '-9': '-7', '-11': '-7', '-7b5': '-7b5',
-                       'h9': '-7b5;', '-b6': '-', '-#5': '-', '9': '7', '7b9': '7', '7#9': '7', '7#11': '7', '7b5': '7',
+                       'h9': '-7b5', '-b6': '-', '-#5': '-', '9': '7', '7b9': '7', '7#9': '7', '7#11': '7', '7b5': '7',
                        '7#5': '7', '9#11': '7', '9b5': '7', '9#5': '7', '7b13': '7', '7#9#5': '7', '7#9b5': '7',
                        '7#9#11': '7', '7b9#11': '7', '7b9b5': '7', '7b9#5': '7', '7b9#9': '7', '7b9b13': '7',
                        '7alt': '7', '13': '7', '13#11': '7', '13b9': '7', '13#9': '7', '7b9sus': '7', '7susadd3': '7',
@@ -17,13 +18,15 @@ all_pitches = {'C': 0, 'C#': 1, 'Cb': 11, 'D': 2, 'D#': 3, 'Db': 1, 'E': 4, 'E#'
 all_pitches_reverse = {0: 'C', 1: 'C#', 2: 'D', 3: 'D#', 4: 'E', 5: 'F', 6: 'F#', 7: 'G', 8: 'G#', 9: 'A',
                        10: 'A#', 11: 'B'}
 
+all_qualities = ['^', '-', '+', 'o', '-7', '-7b5', '^7', '-^7', 'o7', '7', '-6', '^6']
+
 all_valid_chords = None
 epsilon = 1e-8
 lepsilon = numpy.log(epsilon)
 
 
-def back_translate_chord(pair):
-    return all_pitches_reverse[pair[0]] + pair[1]
+def back_translate_chord(num):
+    return all_pitches_reverse[num // 12] + all_qualities[num % 12]
 
 
 def translate_chord(chord):
@@ -34,13 +37,15 @@ def translate_chord(chord):
         all_valid_chords = {}
         for pitch in all_pitches.keys():
             for quality in all_valid_qualities.keys():
-                all_valid_chords[pitch + quality] = (all_pitches[pitch], all_valid_qualities[quality])
+                all_valid_chords[pitch + quality] = all_pitches_reverse[all_pitches[pitch]] + all_valid_qualities[
+                    quality]
                 for bass_pitch in all_pitches.keys():
-                    all_valid_chords[pitch + quality + '/' + bass_pitch] = (
-                        all_pitches[pitch], all_valid_qualities[quality])
+                    all_valid_chords[pitch + quality + '/' + bass_pitch] = all_pitches_reverse[all_pitches[pitch]] + \
+                                                                           all_valid_qualities[quality]
+
     if chord not in all_valid_chords:
         raise ValueError('Unknown Chord ' + chord)
-    return all_valid_chords[chord]
+    return chord_to_number[all_valid_chords[chord]]
 
 
 def get_chords(song):
@@ -58,7 +63,8 @@ def create_2_gram_probability(songs, distance=1):
         chords = get_chords(song)
         for chord_diff in range(12):
             for i in range(len(chords)):
-                chords[i] = ((chords[i][0] + 1) % 12, chords[i][1])
+                # chords[i] = ((chords[i][0] + 1) % 12, chords[i][1])
+                chords[i] = (chords[i] + 12) % 144
             for i in range(len(chords) - distance):
                 current_chord = chords[i]
                 next_chord = chords[i + distance]
@@ -133,6 +139,4 @@ def load_songs():
 
 
 if __name__ == '__main__':
-    s = load_songs()
-    print_log(create_2_gram_probability(s))
-    test_grams(s)
+    print_log(create_2_gram_probability(load_songs()))
