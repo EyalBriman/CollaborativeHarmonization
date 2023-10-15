@@ -1,11 +1,10 @@
 import scipy
 import random
-import gurobipy as gp
 import time
 import numpy as np
-from gurobipy import GRB
 from two_gram import *
-
+import gurobipy as gp
+from gurobipy import GRB
 
 def get_chords_probability(chords):
     probabilities = []
