@@ -1,5 +1,6 @@
 import scipy
 import random
+import pulp
 from two_gram import *
 
 
