@@ -6,6 +6,7 @@ from two_gram import *
 import gurobipy as gp
 from gurobipy import GRB
 
+
 def get_chords_probability(chords):
     probabilities = []
     for i in range(len(chords) - 1):
@@ -198,16 +199,15 @@ if __name__ == '__main__':
     probs = create_2_gram_probability(all_songs)
     algorithms = [majority_algorithm, kemeny, proportional_algorithm, majority_2gram_algorithm, kemeny_2gram,
                   proportional_2gram_algorithm]
-    success = [0] * len(algorithms)
+    success = [[]] * len(algorithms)
     iters = 500
     voters = 32
-    t_0 = time.time()
     for i in range(iters):
         song = get_chords(random.choice(all_songs))
         songs = get_variations(song, voters)
         for j in range(len(algorithms)):
-            if algorithms[j](songs) == song:
-                success[j] += 1
-    t_1 = time.time()
-    print(t_1 - t_0)
-    print([x / iters for x in success])
+            success[j].append(
+                sum([chord_distance_quick(algorithms[j](songs)[i], song[i]) for i in range(len(song))]) / len(song))
+    with open('C:\\Users\\Eleizerovich\\OneDrive - Gita Technologies LTD\\Desktop\\School\\CollaborativeHarmonization\\success.json', 'w') as f:
+        json.dump(success, f)
+    print([sum(x) / iters for x in success])
