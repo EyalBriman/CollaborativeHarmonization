@@ -1,10 +1,14 @@
 import scipy
 import random
-import time
 import numpy as np
 from two_gram import *
 import gurobipy as gp
 from gurobipy import GRB
+from DistanceOfTwoChords import chords_distances
+
+
+def song_distance(song1, song2):
+    return sum([chords_distances[song1[i]][song2[i]] for i in range(len(song1))]) / len(song1)
 
 
 def get_chords_probability(chords):
@@ -32,7 +36,7 @@ def get_majority_score(majority, W):
 def proportional_target_func(W, songs):
     res = 0
     for i in range(len(songs)):
-        dist = np.sort([chord_distance_quick(int(W[j]), songs[i][j]) for j in range(len(W))])
+        dist = np.sort(song_distance(get_ints(W), songs[i]))
         res += sum([dist[j] / (j + 1) for j in range(len(dist))])
     return res
 
@@ -63,15 +67,9 @@ def kemeny_2gram_target_func(W, songs):
     return score1 + score2
 
 
-def change_chords(W):
-    place = numpy.random.randint(0, len(W))
-    W[place] = (W[place] + numpy.random.randint(1, 144)) % 144
-    return W
-
-
 def majority_algorithm(songs):
     song_len = len(songs[0])
-    majority = numpy.zeros((144, song_len))
+    majority = numpy.zeros((len(chords_distances), song_len))
 
     for song in songs:
         for i, chord in enumerate(song):
@@ -83,41 +81,47 @@ def proportional_algorithm(songs, iters=5000, init_with_majority=True):
     if init_with_majority:
         init = majority_algorithm(songs)
     else:
-        init = numpy.random.randint(0, 144, len(songs[0]))
+        init = numpy.random.randint(0, len(chords_distances), len(songs[0]))
     return get_ints(scipy.optimize.basinhopping(proportional_target_func, init, niter=iters, niter_success=750,
                                                 take_step=change_chords, minimizer_kwargs={'args': songs}).x)
 
 
-def kemeny(songs, iters=5000, init_with_majority=True):
-    if init_with_majority:
-        init = majority_algorithm(songs)
-    else:
-        init = numpy.random.randint(0, 144, len(songs[0]))
-    return get_ints(scipy.optimize.basinhopping(kemeny_target_func, init, niter=iters, niter_success=750,
-                                                take_step=change_chords, minimizer_kwargs={'args': songs}).x)
+def kemeny(songs):
+    W = []
+    for i in range(len(songs[0])):
+        max_d = len(songs)
+        best_chord = -1
+        for j in range(len(chords_distances)):
+            d = sum([chords_distances[songs[k][i]][j] for k in range(len(songs))])
+            if d < max_d:
+                max_d = d
+                best_chord = j
+        W.append(best_chord)
+    return W
 
 
 def proportional_2gram_algorithm(songs, iters=5000, init_with_majority=True):
     if init_with_majority:
         init = majority_algorithm(songs)
     else:
-        init = numpy.random.randint(0, 144, len(songs[0]))
-    return get_ints(scipy.optimize.basinhopping(proportional_2gram_target_func, init, niter=iters, niter_success=750,
-                                                take_step=change_chords, minimizer_kwargs={'args': songs}).x)
+        init = numpy.random.randint(0, len(chords_distances), len(songs[0]))
+    return get_ints(
+        scipy.optimize.basinhopping(proportional_2gram_target_func, init, niter=iters, niter_success=750,
+                                    take_step=change_chords, minimizer_kwargs={'args': songs}).x)
 
 
 def kemeny_2gram(songs, iters=5000, init_with_majority=True):
     if init_with_majority:
         init = majority_algorithm(songs)
     else:
-        init = numpy.random.randint(0, 144, len(songs[0]))
+        init = numpy.random.randint(0, len(chords_distances), len(songs[0]))
     return get_ints(scipy.optimize.basinhopping(kemeny_2gram_target_func, init, niter=iters, niter_success=750,
                                                 take_step=change_chords, minimizer_kwargs={'args': songs}).x)
 
 
 def majority_2gram_algorithm(songs, iters=5000, init_with_majority=True):
     song_len = len(songs[0])
-    majority = numpy.zeros((144, song_len))
+    majority = numpy.zeros((len(chords_distances), song_len))
 
     for song in songs:
         for i, chord in enumerate(song):
@@ -126,7 +130,7 @@ def majority_2gram_algorithm(songs, iters=5000, init_with_majority=True):
     if init_with_majority:
         init = numpy.argmax(majority, axis=0)
     else:
-        init = numpy.random.randint(0, 144, song_len)
+        init = numpy.random.randint(0, len(chords_distances), song_len)
     return get_ints(scipy.optimize.basinhopping(majority_2gram_target_func, init, niter=iters, niter_success=750,
                                                 take_step=change_chords, minimizer_kwargs={'args': majority}).x)
 
@@ -186,10 +190,10 @@ def get_variations(song, n):
     songs = []
     for i in range(n):
         songs.append(song.copy())
-        for j in range(numpy.random.randint(1, round(len(song)))):
+        for j in range(numpy.random.randint(len(song), len(song) * 4)):
             place = numpy.random.randint(0, len(song))
             c = songs[-1][place]
-            d = chord_distances[c * 144:c * 144 + c] + chord_distances[c * 144 + c + 1:c * 144 + 144]
+            d = chords_distances[c][:c] + [1] + chords_distances[c][c + 1:]
             songs[-1][place] = numpy.random.choice([i for i, x in enumerate(d) if x == min(d)])
     return songs
 
@@ -197,17 +201,18 @@ def get_variations(song, n):
 if __name__ == '__main__':
     all_songs = load_songs()
     probs = create_2_gram_probability(all_songs)
-    algorithms = [majority_algorithm, kemeny, proportional_algorithm, majority_2gram_algorithm, kemeny_2gram,
-                  proportional_2gram_algorithm]
+    algorithms = [majority_algorithm, kemeny]
     success = [[]] * len(algorithms)
-    iters = 500
-    voters = 32
+    iters = 100
+    voters = 64
     for i in range(iters):
         song = get_chords(random.choice(all_songs))
         songs = get_variations(song, voters)
         for j in range(len(algorithms)):
-            success[j].append(
-                sum([chord_distance_quick(algorithms[j](songs)[i], song[i]) for i in range(len(song))]) / len(song))
-    with open('C:\\Users\\Eleizerovich\\OneDrive - Gita Technologies LTD\\Desktop\\School\\CollaborativeHarmonization\\success.json', 'w') as f:
+            W = algorithms[j](songs)
+            success[j].append(song_distance(W, song))
+    with open(
+            'C:\\Users\\Eleizerovich\\OneDrive - Gita Technologies LTD\\Desktop\\School\\CollaborativeHarmonization\\success.json',
+            'w') as f:
         json.dump(success, f)
-    print([sum(x) / iters for x in success])
+    print([sum(x) / iters * 100 for x in success])
