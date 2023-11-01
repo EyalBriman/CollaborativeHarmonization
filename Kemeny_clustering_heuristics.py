@@ -3,8 +3,11 @@ import math
 ####################Genetic
 # Define problem-specific parameters
 n = 10  # Number of agents
-k = 4   # Number of chord positions
+k = 32  # Number of chord positions
 num_clusters = 3  # Number of clusters
+
+# Define the association of agents to clusters
+num_agents_per_cluster = [n // num_clusters] * (num_clusters - 1) + [n - (n // num_clusters) * (num_clusters - 1)]
 
 # Initialize the population
 population_size = 50
@@ -23,7 +26,7 @@ def objective(chord_preferences, clusters, partition):
 # Define the P function
 def P(j, z, partition):
     if z < num_clusters - 1:
-        return 1 if z <= j < partition[z + 1] else 0
+        return 1 if z <= j < partition[I(z, partition) + 1] else 0
     else:
         return 1 if partition[z] <= j < k else 0
 
@@ -43,32 +46,38 @@ def d(chord_i, chord_j):
 mutation_rate = 0.1
 generations = 100
 
+# Define the selection, crossover, and mutation functions
+def selection(population, fitness_scores):
+    # Implement selection logic here
+    pass
+
+def crossover(parent1, parent2):
+    # Implement crossover logic here
+    pass
+
+def mutate(child):
+    # Implement mutation logic here
+    pass
+
+# Main GA loop
 for generation in range(generations):
-    # Evaluate fitness for each individual in the population
     fitness_scores = [objective(chord_preferences, clusters, individual) for individual in population]
+    parents = selection(population, fitness_scores)
 
-    # Select the best individuals
-    num_parents = 10
-    parents_indices = np.argsort(fitness_scores)[:num_parents]
-    parents = [population[i] for i in parents_indices]
-
-    # Create new individuals through crossover and mutation
     children = []
 
-    for _ in range(population_size - num_parents):
+    for _ in range(population_size - len(parents)):
         parent1, parent2 = np.random.choice(parents, 2)
         child = crossover(parent1, parent2)
         if np.random.rand() < mutation_rate:
             child = mutate(child)
         children.append(child)
 
-    # Replace the old population with the new population
     population = parents + children
 
 # The best solution is the one with the lowest objective function value
 best_solution = population[np.argmin(fitness_scores)]
-print("Best solution:", best_solution)
-
+print("Best solution (Genetic Algorithm):", best_solution)
 ####################Simulated
 # Define a function to generate a random initial solution
 def generate_random_solution():
@@ -82,26 +91,9 @@ iterations = 1000
 best_solution = None
 best_distance = float('inf')
 
-for _ in range(iterations):  # Run multiple iterations with random starts
-    current_solution = generate_random_solution()
+for iteration in range(iterations):
+    temperature = initial_temperature * math.exp(-cooling_rate * iteration)
 
-    for iteration in range(iterations):
-        temperature = initial_temperature * math.exp(-cooling_rate * iteration)
-
-        neighbor_solution = perturb(current_solution)
-
-        delta = objective(chord_preferences, clusters, neighbor_solution) - objective(chord_preferences, clusters, current_solution)
-
-        if delta < 0 or np.random.rand() < math.exp(-delta / temperature):
-            current_solution = neighbor_solution
-
-    current_distance = objective(chord_preferences, clusters, current_solution)
-
-    if current_distance < best_distance:
-        best_solution = current_solution
-        best_distance = current_distance
-
-print("Best solution:", best_solution)
     neighbor_solution = perturb(current_solution)
 
     delta = objective(chord_preferences, clusters, neighbor_solution) - objective(chord_preferences, clusters, current_solution)
@@ -109,7 +101,10 @@ print("Best solution:", best_solution)
     if delta < 0 or np.random.rand() < math.exp(-delta / temperature):
         current_solution = neighbor_solution
 
-    if objective(chord_preferences, clusters, current_solution) < objective(chord_preferences, clusters, best_solution):
-        best_solution = current_solution
+    current_distance = objective(chord_preferences, clusters, current_solution)
 
-print("Best solution:", best_solution)
+    if current_distance < best_distance:
+        best_solution = current_solution
+        best_distance = current_distance
+
+print("Best solution (Simulated Annealing):", best_solution)
