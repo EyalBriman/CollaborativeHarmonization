@@ -190,7 +190,7 @@ def get_variations(song, n):
     songs = []
     for i in range(n):
         songs.append(song.copy())
-        for j in range(numpy.random.randint(len(songs)//2, len(song) * 4)):
+        for j in range(numpy.random.randint(len(songs), len(song) * 4)):
             place = numpy.random.randint(0, len(song))
             c = songs[-1][place]
             d = chords_distances[c][:c] + [1] + chords_distances[c][c + 1:]
