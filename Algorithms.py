@@ -1,3 +1,5 @@
+import math
+
 import scipy
 import random
 import numpy as np
@@ -29,10 +31,6 @@ def get_2gram_score(song):
     return get_chords_probability(song)
 
 
-def get_majority_score(majority, W):
-    return sum([majority[x, i] for i, x in enumerate(W)]) / len(W)
-
-
 def proportional_target_func(W, songs):
     res = 0
     for i in range(len(songs)):
@@ -44,26 +42,6 @@ def proportional_target_func(W, songs):
 def proportional_2gram_target_func(W, songs):
     score1 = -get_2gram_score(get_ints(W))
     score2 = proportional_target_func(W, songs)
-    return score1 + score2
-
-
-def majority_2gram_target_func(W, majority):
-    Wi = get_ints(W)
-    score1 = -get_2gram_score(Wi)
-    score2 = -get_majority_score(majority, Wi) * 50
-    return score1 + score2
-
-
-def kemeny_target_func(W, songs):
-    Wi = get_ints(W)
-    return sum([sum([chord_distance(Wi[i], song[i]) for i in range(len(song))]) for song in songs])
-
-
-def kemeny_2gram_target_func(W, songs):
-    Wi = get_ints(W)
-    score1 = -get_2gram_score(Wi)
-    score2 = sum([sum([chord_distance(Wi[i], song[i]) for i in range(len(song))]) for song in songs]) / len(
-        songs) / len(songs[0]) * 4
     return score1 + score2
 
 
@@ -110,29 +88,51 @@ def proportional_2gram_algorithm(songs, iters=5000, init_with_majority=True):
                                     take_step=change_chords, minimizer_kwargs={'args': songs}).x)
 
 
-def kemeny_2gram(songs, iters=5000, init_with_majority=True):
-    if init_with_majority:
-        init = majority_algorithm(songs)
-    else:
-        init = numpy.random.randint(0, len(chords_distances), len(songs[0]))
-    return get_ints(scipy.optimize.basinhopping(kemeny_2gram_target_func, init, niter=iters, niter_success=750,
-                                                take_step=change_chords, minimizer_kwargs={'args': songs}).x)
+def kemeny_2gram(songs):
+    global probs
+    W = []
+    for i in range(len(songs[0])):
+        base_T = []
+        for j in range(len(chords_distances)):
+            base_T.append(sum([chords_distances[songs[k][i]][j] for k in range(len(songs))]))
+        if i > 0:
+            new_T = []
+            min_d = math.inf
+            for j in range(len(chords_distances)):
+                for m in range(len(chords_distances)):
+                    d = base_T[j] + T[m] + probs[m][j]
+                    if d < min_d:
+                        min_d = d
+                new_T.append(min_d)
+        else:
+            new_T = base_T
+        T = new_T.copy()
+        W.append(T.index(min(T)))
+    return W
 
 
-def majority_2gram_algorithm(songs, iters=5000, init_with_majority=True):
-    song_len = len(songs[0])
-    majority = numpy.zeros((len(chords_distances), song_len))
-
-    for song in songs:
-        for i, chord in enumerate(song):
-            majority[chord, i] += 1 / len(songs)
-
-    if init_with_majority:
-        init = numpy.argmax(majority, axis=0)
-    else:
-        init = numpy.random.randint(0, len(chords_distances), song_len)
-    return get_ints(scipy.optimize.basinhopping(majority_2gram_target_func, init, niter=iters, niter_success=750,
-                                                take_step=change_chords, minimizer_kwargs={'args': majority}).x)
+def majority_2gram(songs):
+    global probs
+    W = []
+    for i in range(len(songs[0])):
+        base_T = [0] * len(chords_distances)
+        for j in range(len(chords_distances)):
+            for song in songs:
+                base_T[song[i]] += 1
+        if i > 0:
+            new_T = []
+            min_d = math.inf
+            for j in range(len(chords_distances)):
+                for m in range(len(chords_distances)):
+                    d = base_T[j] + T[m] + probs[m][j]
+                    if d < min_d:
+                        min_d = d
+                new_T.append(min_d)
+        else:
+            new_T = base_T
+        T = new_T.copy()
+        W.append(T.index(min(T)))
+    return W
 
 
 def P(j, z, Z):
@@ -201,10 +201,12 @@ def get_variations(song, n):
 if __name__ == '__main__':
     all_songs = load_songs()
     probs = create_2_gram_probability(all_songs)
-    algorithms = [majority_algorithm, kemeny]
-    success = [[]] * len(algorithms)
-    iters = 100
-    voters = 64
+    algorithms = [majority_algorithm, kemeny, kemeny_2gram, majority_2gram]
+    success = []
+    for i in range(len(algorithms)):
+        success.append([])
+    iters = 10
+    voters = 32
     for i in range(iters):
         song = get_chords(random.choice(all_songs))
         songs = get_variations(song, voters)

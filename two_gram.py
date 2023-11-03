@@ -61,10 +61,9 @@ def create_2_gram_probability(songs, distance=1):
 
     for song in songs:
         chords = get_chords(song)
-        for chord_diff in range(12):
+        for chord_diff in range(10):
             for i in range(len(chords)):
-                # chords[i] = ((chords[i][0] + 1) % 12, chords[i][1])
-                chords[i] = (chords[i] + 12) % 144
+                chords[i] = (chords[i] + 10) % 120
             for i in range(len(chords) - distance):
                 current_chord = chords[i]
                 next_chord = chords[i + distance]
@@ -82,8 +81,11 @@ def create_2_gram_probability(songs, distance=1):
 
     # Calculate probabilities
     chord_probabilities = {}
+    for chord1 in range(120):
+        chord_probabilities[chord1] = {}
+        for chord2 in range(120):
+            chord_probabilities[chord1][chord2] = lepsilon
     for chord, count in chord_counts.items():
-        chord_probabilities[chord] = {}
         for follower, follower_count in chord_followers[chord].items():
             chord_probabilities[chord][follower] = numpy.log(follower_count / count + epsilon)
 

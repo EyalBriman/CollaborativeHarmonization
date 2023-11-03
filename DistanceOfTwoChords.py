@@ -36,4 +36,3 @@ def init_distances():
 
 chords_distances = []
 init_distances()
-
