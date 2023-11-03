@@ -10,7 +10,6 @@ for i, tone in enumerate(half_tones):
         chord_dict[tone + chord] = []
         for note in chords[chord]:
             chord_dict[tone + chord].append(half_tones[(note + i)%len(half_tones)])
-
 # Map each chord to a number ranging from 0 to 144
 chord_to_number = {chord: i for i, chord in enumerate(all_chords)}
 number_to_chord = {i: chord for i, chord in enumerate(all_chords)}

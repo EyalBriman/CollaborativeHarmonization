@@ -118,7 +118,7 @@ def majority_2gram(songs):
         base_T = [0] * len(chords_distances)
         for j in range(len(chords_distances)):
             for song in songs:
-                base_T[song[i]] += 1
+                base_T[song[i]] -= 1
         if i > 0:
             new_T = []
             min_d = math.inf
@@ -190,11 +190,11 @@ def get_variations(song, n):
     songs = []
     for i in range(n):
         songs.append(song.copy())
-        for j in range(numpy.random.randint(len(song), len(song) * 4)):
+        for j in range(numpy.random.randint(len(songs)//2, len(song) * 4)):
             place = numpy.random.randint(0, len(song))
             c = songs[-1][place]
             d = chords_distances[c][:c] + [1] + chords_distances[c][c + 1:]
-            songs[-1][place] = numpy.random.choice([i for i, x in enumerate(d) if x == min(d)])
+            songs[-1][place] = numpy.random.choice([i for i, x in enumerate(d) if x <= max(0.5, min(d))])
     return songs
 
 
