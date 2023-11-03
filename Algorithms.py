@@ -9,6 +9,12 @@ from gurobipy import GRB
 from DistanceOfTwoChords import chords_distances
 
 
+def change_chords(W):
+    place = numpy.random.randint(0, len(W))
+    W[place] = (W[place] + numpy.random.randint(1, len(chords_distances))) % len(chords_distances)
+    return W
+
+
 def song_distance(song1, song2):
     return sum([chords_distances[song1[i]][song2[i]] for i in range(len(song1))]) / len(song1)
 
@@ -33,8 +39,9 @@ def get_2gram_score(song):
 
 def proportional_target_func(W, songs):
     res = 0
+    W = get_ints(W)
     for i in range(len(songs)):
-        dist = np.sort(song_distance(get_ints(W), songs[i]))
+        dist = np.sort([chords_distances[W[j]][songs[i][j]] for j in range(len(W))])
         res += sum([dist[j] / (j + 1) for j in range(len(dist))])
     return res
 
@@ -141,7 +148,7 @@ def P(j, z, Z):
     return False
 
 
-def kemeny_clustering_algorithm(songs, Z):
+def kemeny_clustering_algorithm_depricated(songs, Z):
     Z.sort()
     if len(songs) == 0 or Z[0] != 0 or Z[-1] > len(songs[0]):
         raise ValueError('Songs must not be empty and Z must start with 0 and not exceed length of songs')
@@ -201,12 +208,13 @@ def get_variations(song, n):
 if __name__ == '__main__':
     all_songs = load_songs()
     probs = create_2_gram_probability(all_songs)
-    algorithms = [majority_algorithm, kemeny, kemeny_2gram, majority_2gram]
+    algorithms = [majority_algorithm, majority_2gram, kemeny,
+                  kemeny_2gram,, proportional_algorithm, proportional_2gram_algorithm]
     success = []
     for i in range(len(algorithms)):
         success.append([])
-    iters = 10
-    voters = 32
+    iters = 1
+    voters = 16
     for i in range(iters):
         song = get_chords(random.choice(all_songs))
         songs = get_variations(song, voters)

@@ -18,7 +18,7 @@ all_pitches = {'C': 0, 'C#': 1, 'Cb': 11, 'D': 2, 'D#': 3, 'Db': 1, 'E': 4, 'E#'
 all_pitches_reverse = {0: 'C', 1: 'C#', 2: 'D', 3: 'D#', 4: 'E', 5: 'F', 6: 'F#', 7: 'G', 8: 'G#', 9: 'A',
                        10: 'A#', 11: 'B'}
 
-all_qualities = list(chords.keys())
+all_qualities = list(chords_types.keys())
 
 all_valid_chords = None
 epsilon = 1e-8
@@ -26,7 +26,7 @@ lepsilon = numpy.log(epsilon)
 
 
 def back_translate_chord(num):
-    return all_pitches_reverse[num // 12] + all_qualities[num % 12]
+    return all_pitches_reverse[num // len(half_tones)] + all_qualities[num % len(half_tones)]
 
 
 def translate_chord(chord):
@@ -63,7 +63,7 @@ def create_2_gram_probability(songs, distance=1):
         chords = get_chords(song)
         for chord_diff in range(10):
             for i in range(len(chords)):
-                chords[i] = (chords[i] + 10) % 120
+                chords[i] = (chords[i] + len(chords_types)) % len(chords_distances)
             for i in range(len(chords) - distance):
                 current_chord = chords[i]
                 next_chord = chords[i + distance]
@@ -81,9 +81,9 @@ def create_2_gram_probability(songs, distance=1):
 
     # Calculate probabilities
     chord_probabilities = {}
-    for chord1 in range(120):
+    for chord1 in range(len(chords_distances)):
         chord_probabilities[chord1] = {}
-        for chord2 in range(120):
+        for chord2 in range(len(chords_distances)):
             chord_probabilities[chord1][chord2] = lepsilon
     for chord, count in chord_counts.items():
         for follower, follower_count in chord_followers[chord].items():
