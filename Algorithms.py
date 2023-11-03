@@ -208,12 +208,12 @@ def get_variations(song, n):
 if __name__ == '__main__':
     all_songs = load_songs()
     probs = create_2_gram_probability(all_songs)
-    algorithms = [majority_algorithm, majority_2gram, kemeny,
-                  kemeny_2gram,, proportional_algorithm, proportional_2gram_algorithm]
+    algorithms = [majority_algorithm, majority_2gram, kemeny, kemeny_2gram, proportional_algorithm,
+                  proportional_2gram_algorithm]
     success = []
     for i in range(len(algorithms)):
         success.append([])
-    iters = 1
+    iters = 20
     voters = 16
     for i in range(iters):
         song = get_chords(random.choice(all_songs))

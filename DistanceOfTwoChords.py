@@ -1,14 +1,14 @@
 half_tones = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-chords = {'^7': [0, 4, 7, 11], '-7': [0, 3, 7, 10], '-6': [0, 3, 7, 9], '-^7': [0, 3, 7, 11], '+^7': [0, 4, 8, 11],
+chords_types = {'^7': [0, 4, 7, 11], '-7': [0, 3, 7, 10], '-6': [0, 3, 7, 9], '-^7': [0, 3, 7, 11], '+^7': [0, 4, 8, 11],
           '+7': [0, 4, 8, 10], '7': [0, 4, 7, 10],
           '-7b5': [0, 3, 6, 10], 'o': [0, 3, 6, 9], 'o^7': [0, 3, 6, 11]}
 all_chords = []
 chord_dict = {}
 for i, tone in enumerate(half_tones):
-    for j, chord in enumerate(list(chords.keys())):
+    for j, chord in enumerate(list(chords_types.keys())):
         all_chords.append(tone + chord)
         chord_dict[tone + chord] = []
-        for note in chords[chord]:
+        for note in chords_types[chord]:
             chord_dict[tone + chord].append(half_tones[(note + i)%len(half_tones)])
 # Map each chord to a number ranging from 0 to 144
 chord_to_number = {chord: i for i, chord in enumerate(all_chords)}
