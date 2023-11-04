@@ -8,7 +8,11 @@ import gurobipy as gp
 from gurobipy import GRB
 from DistanceOfTwoChords import chords_distances
 
-
+def change_chords(W):
+    place = numpy.random.randint(0, len(W))
+    W[place] = (W[place] + numpy.random.randint(1, 144)) % 144
+    return W
+    
 def change_chords(W):
     place = numpy.random.randint(0, len(W))
     W[place] = (W[place] + numpy.random.randint(1, len(chords_distances))) % len(chords_distances)
