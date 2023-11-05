@@ -8,15 +8,28 @@ from two_gram import *
 # from gurobipy import GRB
 from DistanceOfTwoChords import chords_distances
 
-def change_chords(W):
-    place = numpy.random.randint(0, len(W))
-    W[place] = (W[place] + numpy.random.randint(1, 144)) % 144
-    return W
-    
+
 def change_chords(W):
     place = numpy.random.randint(0, len(W))
     W[place] = (W[place] + numpy.random.randint(1, round(change_chords.stepsize))) % len(chords_distances)
     return W
+
+
+def change_chords_clustering(partition, W, agent_clustering, upper_bound):
+    flag = random.random()
+    if flag <= 0.4:
+        place = numpy.random.randint(0, len(W))
+        W[place] = (W[place] + numpy.random.randint(1, 120)) % 120
+    elif flag > 0.4 and flag <= 0.8:
+        flag_1 = numpy.random.randint(0, len(agent_clustering))
+        agent_clustering[flag_1] = random.choice(partition)
+    elif flag > 0.8 and flag <= 0.9:
+        flag_2 = len(partition)
+        partition = random.sample(range(len(W)), flag_2)
+    else:
+        flag_3 = numpy.random.randint(0, upper_bound + 1)
+        partition = random.sample(range(len(W)), flag_3)
+    return partition, W, agent_clustering
 
 
 def song_distance(song1, song2):
@@ -148,55 +161,17 @@ def majority_2gram(songs):
     return W
 
 
-def P(j, z, Z):
-    if (z < len(Z) - 1 and j >= Z[z] and z < Z[z + 1]) or (z == len(Z) - 1 and j >= Z[z]):
-        return True
-    return False
-
-
-def kemeny_clustering_algorithm_depricated(songs, Z):
-    Z.sort()
-    if len(songs) == 0 or Z[0] != 0 or Z[-1] > len(songs[0]):
-        raise ValueError('Songs must not be empty and Z must start with 0 and not exceed length of songs')
-    input = []
-    for i in range(len(songs)):
-        input.append([])
-        for j in range(len(songs[0])):
-            input[i].append([songs[i][j] // 12, songs[i][j] % 12])
-    m = gp.Model()
-    a = m.addVars(len(songs), vtype=GRB.INTEGER, lb=0, ub=len(Z) - 1, name="a")
-    Q = m.addVars(len(songs), len(Z), vtype=GRB.BINARY, name="Q")
-    W = m.addVars(len(songs[0]), 2, vtype=GRB.INTEGER, name="W")
-    T = m.addVars(len(songs), len(songs[0]), 2, vtype=GRB.INTEGER, ub=11, lb=0, name="T")
-    T2 = m.addVars(len(songs), len(songs[0]), 2, vtype=GRB.INTEGER, ub=11, lb=0, name="T2")
-    obj = 0
-    for i in range(len(songs)):
-        for z in range(len(Z)):
-            for j in range(len(songs[0])):
-                if P(j, z, Z):
-                    obj += (Q[i, z] * 0.7 + 0.3) * ((T[i, j, 0] + T[i, j, 1]) * 4 + T2[i, j, 0] + T2[i, j, 1])
-    m.setObjective(obj, GRB.MINIMIZE)
-    for i in range(len(songs)):
-        for z in range(len(Z)):
-            m.addConstr((Q[i, z] == 1) >> (a[i] == z), name="C0" + str(i) + str(z))
-        m.addConstr(gp.quicksum([Q[i, z] for z in range(len(Z))]) == 1, name="C1" + str(i))
-    for i in range(len(songs)):
-        for j in range(len(songs[0])):
-            m.addConstr(T[i, j, 0] - T[i, j, 1] == W[j, 0] - input[i][j][0], name="C2" + str(i) + str(j))
-            m.addConstr(T2[i, j, 0] - T2[i, j, 1] == W[j, 1] - input[i][j][1], name="C3" + str(i) + str(j))
-    m.optimize()
-    if m.Status != GRB.OPTIMAL:
-        return []
-    res = []
-    for v in m.getVars():
-        if v.VarName[0] == 'W':
-            if v.VarName[4] == '0':
-                res.append(int(v.X) * 12)
-            else:
-                res[-1] += int(v.X)
-        elif v.VarName[0] == 'a' or v.VarName[0] == 'Q':
-            print(v.VarName, int(v.X))
-    return res
+def kemeny_clustering(songs, upper_bound, iters=5000):
+    init = majority_algorithm(songs)
+    flag_3 = numpy.random.randint(0, upper_bound + 1)
+    partition = random.sample(range(len(W)), flag_3)
+    agent_clustering = []
+    for i in range(songs):
+        agent_clustering.append(random.choice(partition))
+    return get_ints(scipy.optimize.basinhopping(kemeny_clustering_target_func, init, niter=iters, niter_success=750,
+                                                take_step=change_chords_clustering,
+                                                minimizer_kwargs={'args': (songs, partition, agent_clustering,
+                                                                           upper_bound)}).x)
 
 
 def get_variations(song, n):
@@ -245,7 +220,7 @@ if __name__ == '__main__':
     x = np.arange(len(success[0]))
     w = 0.8 / len(success)
     for i, y in enumerate(success):
-        plt.bar(x + (i - len(success)/2) * w, y, width=w)
+        plt.bar(x + (i - len(success) / 2) * w, y, width=w)
     plt.xticks(x, [str(y) for y in x])
     plt.title('Algorithms Distance')
     plt.xlabel('Iteration')
@@ -253,7 +228,7 @@ if __name__ == '__main__':
     plt.legend(['Majority', 'Majority-2gram', 'Kemeny', 'Kemeny-2gram', 'Proportional', 'Proportional-2gram'])
     plt.show()
     for i, y in enumerate(sanity):
-        plt.bar(x + (i - len(sanity)/2) * w, [math.exp(z) for z in y], width=w)
+        plt.bar(x + (i - len(sanity) / 2) * w, [math.exp(z) for z in y], width=w)
     plt.title('Algorithm Musical suitability')
     plt.xlabel('Iteration')
     plt.ylabel('Musical Suitability')
