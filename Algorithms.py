@@ -1,17 +1,17 @@
 import math
-
-import scipy
+import matplotlib.pyplot as plt
 import random
+import scipy
 import numpy as np
 from two_gram import *
-import gurobipy as gp
-from gurobipy import GRB
+# import gurobipy as gp
+# from gurobipy import GRB
 from DistanceOfTwoChords import chords_distances
 
 
 def change_chords(W):
     place = numpy.random.randint(0, len(W))
-    W[place] = (W[place] + numpy.random.randint(1, len(chords_distances))) % len(chords_distances)
+    W[place] = (W[place] + numpy.random.randint(1, round(change_chords.stepsize))) % len(chords_distances)
     return W
 
 
@@ -67,6 +67,7 @@ def proportional_algorithm(songs, iters=5000, init_with_majority=True):
         init = majority_algorithm(songs)
     else:
         init = numpy.random.randint(0, len(chords_distances), len(songs[0]))
+    change_chords.stepsize = 20
     return get_ints(scipy.optimize.basinhopping(proportional_target_func, init, niter=iters, niter_success=750,
                                                 take_step=change_chords, minimizer_kwargs={'args': songs}).x)
 
@@ -90,6 +91,7 @@ def proportional_2gram_algorithm(songs, iters=5000, init_with_majority=True):
         init = majority_algorithm(songs)
     else:
         init = numpy.random.randint(0, len(chords_distances), len(songs[0]))
+    change_chords.stepsize = 20
     return get_ints(
         scipy.optimize.basinhopping(proportional_2gram_target_func, init, niter=iters, niter_success=750,
                                     take_step=change_chords, minimizer_kwargs={'args': songs}).x)
@@ -206,23 +208,50 @@ def get_variations(song, n):
 
 
 if __name__ == '__main__':
-    all_songs = load_songs()
-    probs = create_2_gram_probability(all_songs)
-    algorithms = [majority_algorithm, majority_2gram, kemeny, kemeny_2gram, proportional_algorithm,
-                  proportional_2gram_algorithm]
-    success = []
-    for i in range(len(algorithms)):
-        success.append([])
-    iters = 20
-    voters = 16
-    for i in range(iters):
-        song = get_chords(random.choice(all_songs))
-        songs = get_variations(song, voters)
-        for j in range(len(algorithms)):
-            W = algorithms[j](songs)
-            success[j].append(song_distance(W, song))
-    with open(
-            'C:\\Users\\Eleizerovich\\OneDrive - Gita Technologies LTD\\Desktop\\School\\CollaborativeHarmonization\\success.json',
-            'w') as f:
-        json.dump(success, f)
-    print([sum(x) / iters * 100 for x in success])
+    if 0:
+        all_songs = load_songs()
+        probs = create_2_gram_probability(all_songs)
+        algorithms = [majority_algorithm, majority_2gram, kemeny, kemeny_2gram, proportional_algorithm,
+                      proportional_2gram_algorithm]
+        success = []
+        sanity = []
+        for i in range(len(algorithms)):
+            success.append([])
+            sanity.append([])
+
+        iters = 5
+        voters = 8
+        for i in range(iters):
+            song = get_chords(random.choice(all_songs))
+            songs = get_variations(song, voters)
+            for j in range(len(algorithms)):
+                W = algorithms[j](songs)
+                success[j].append(song_distance(W, song))
+                sanity[j].append(get_chords_probability(W))
+        with open(
+                'C:\\Users\\Eleizerovich\\OneDrive - Gita Technologies LTD\\Desktop\\School\\CollaborativeHarmonization\\success.json',
+                'w') as f:
+            json.dump((success, sanity), f)
+    else:
+        with open(
+                'C:\\Users\\Eleizerovich\\OneDrive - Gita Technologies LTD\\Desktop\\School\\CollaborativeHarmonization\\success.json',
+                'r') as f:
+            (success, sanity) = json.load(f)
+    print([sum(x) / len(x) * 100 for x in success])
+    x = np.arange(len(success[0]))
+    w = 0.8 / len(success)
+    for i, y in enumerate(success):
+        plt.bar(x + (i - len(success)/2) * w, y, width=w)
+    plt.xticks(x, [str(y) for y in x])
+    plt.title('Algorithms Distance')
+    plt.xlabel('Iteration')
+    plt.ylabel('Distance')
+    plt.legend(['Majority', 'Majority-2gram', 'Kemeny', 'Kemeny-2gram', 'Proportional', 'Proportional-2gram'])
+    plt.show()
+    for i, y in enumerate(sanity):
+        plt.bar(x + (i - len(sanity)/2) * w, [math.exp(z) for z in y], width=w)
+    plt.title('Algorithm Musical suitability')
+    plt.xlabel('Iteration')
+    plt.ylabel('Musical Suitability')
+    plt.legend(['Majority', 'Majority-2gram', 'Kemeny', 'Kemeny-2gram', 'Proportional', 'Proportional-2gram'])
+    plt.show()

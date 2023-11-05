@@ -61,7 +61,7 @@ def create_2_gram_probability(songs, distance=1):
 
     for song in songs:
         chords = get_chords(song)
-        for chord_diff in range(10):
+        for chord_diff in range(len(half_tones)):
             for i in range(len(chords)):
                 chords[i] = (chords[i] + len(chords_types)) % len(chords_distances)
             for i in range(len(chords) - distance):
