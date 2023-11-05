@@ -15,30 +15,21 @@ def change_chords(W):
     return W
 
 
-def change_chords_clustering(args):
+def change_chords_clustering(partition, W, agent_clustering, upper_bound=4):
     flag = random.random()
-    args = get_ints(args)
-    W = args[:change_chords_clustering.W_len]
-    agent_clustering = args[
-                       change_chords_clustering.W_len:change_chords_clustering.W_len + change_chords_clustering.songs_len]
-    partition = args[change_chords_clustering.W_len + change_chords_clustering.songs_len:]
-
     if flag <= 0.4:
-        place = numpy.random.randint(0, len(W))
-        W[place] = (W[place] + numpy.random.randint(1, len(chords_distances))) % len(chords_distances)
-    elif 0.4 < flag <= 0.8:
-        flag_1 = numpy.random.randint(0, len(agent_clustering))
-        args[change_chords_clustering.W_len + flag_1] = random.choice(partition)
-    elif 0.8 < flag <= 0.9:
-        flag_3 = len(partition)
-        args[change_chords_clustering.W_len + change_chords_clustering.songs_len:] = [0] + random.sample(range(len(W)),
-                                                                                                       len(partition))
+        place = np.random.randint(0, len(W))
+        W[place] = (W[place] + np.random.randint(1, 120)) % 120
+    elif flag > 0.4 and flag <= 0.8:
+        flag_1 = np.random.randint(0, len(agent_clustering))
+        agent_clustering[flag_1] = random.choice(partition)
+    elif flag > 0.8 and flag <= 0.9:
+        flag_2 = len(partition)
+        partition = random.sample(range(len(W)), flag_2)
     else:
-        flag_3 = numpy.random.randint(0, change_chords_clustering.upper_bound + 1)
-        del args[change_chords_clustering.W_len + change_chords_clustering.songs_len:]
-        args.append([0] + random.sample(range(len(W)), flag_3))
-    return args
-
+        flag_3 = np.random.randint(0, upper_bound + 1)
+        partition = random.sample(range(len(W)), flag_3)
+    return partition, W, agent_clustering
 
 def song_distance(song1, song2):
     return sum([chords_distances[song1[i]][song2[i]] for i in range(len(song1))]) / len(song1)
@@ -175,45 +166,73 @@ def P(j, z, partition, k):
     else:
         return 1 if partition[z] <= j < k else 0
 
-
-def Q(i, z, agent_clustering, partition):
-    if agent_clustering[i] == partition[z]:
+def Q(i, z, agent_clustering):
+    if agent_clustering[i] == z:
         return 1
     else:
         return 0.5
 
-
-def kemeny_clustering_target_func(args, songs, W_len):
+def kemeny_clustering_target_func(songs, partition, W, agent_clustering):
     total_distance = 0
-    args = get_ints(args)
-    W = args[:W_len]
-    agent_clustering = args[W_len:W_len + len(songs)]
-    partition = args[W_len + len(songs):]
-
-    for z in range(len(partition)):
+    for z in partition:
         for i in range(len(songs)):
             for j in range(len(W)):
-                total_distance += P(j, z, partition, len(W)) * Q(i, z, agent_clustering, partition) * \
-                                  chords_distances[songs[i][j]][W[j]]
-    return total_distance
+                total_distance += P(j, z, partition, len(W)) * Q(i, z, agent_clustering) * (1 - (1-chords_distances[songs[i][j]][W[j]]))
+    return (-1) * total_distance
 
+def simulated_annealing(songs, partition, W, agent_clustering, iters, upper_bound, success_limit):
+    current_partition = partition
+    current_W = W
+    current_agent_clustering = agent_clustering
+    current_score = kemeny_clustering_target_func(songs, current_partition, current_W, current_agent_clustering)
+    
+    best_partition = current_partition
+    best_W = current_W
+    best_agent_clustering = current_agent_clustering
+    best_score = current_score
+    
+    progress_iters = 0  # Track the number of successful iterations
+    success_limit_reached = False
+    
+    for iteration in range(iters):
+        T = max(1.0, (1.0 - iteration / iters))  # Annealing schedule
+        new_partition, new_W, new_agent_clustering = change_chords_clustering(current_partition, current_W, current_agent_clustering, upper_bound)
+        new_score = kemeny_clustering_target_func(songs, new_partition, new_W, new_agent_clustering)
 
-def kemeny_clustering(songs, upper_bound=4, iters=5000):
-    W = majority_algorithm(songs)
-    flag_3 = numpy.random.randint(0, upper_bound + 1)
-    partition = [0] + random.sample(range(len(W)), flag_3)
+        delta_score = new_score - current_score
+
+        if delta_score < 0 or random.random() < np.exp(-delta_score / T):
+            current_partition = new_partition
+            current_W = new_W
+            current_agent_clustering = new_agent_clustering
+            current_score = new_score
+            progress_iters += 1
+
+        if new_score < best_score:
+            best_partition = new_partition
+            best_W = new_W
+            best_agent_clustering = new_agent_clustering
+            best_score = new_score
+
+        if progress_iters >= success_limit:
+            success_limit_reached = True
+
+        if success_limit_reached and progress_iters >= success_limit:
+            break
+
+    return best_partition, best_W, best_agent_clustering, best_score
+
+def kemeny_clustering(songs, iters=5000, upper_bound=4, success_limit=750):
+    init = majority_algorithm(songs)
+    flag_3 = np.random.randint(0, upper_bound + 1)
+    partition = random.sample(range(len(W)), flag_3)
     agent_clustering = []
     for i in range(len(songs)):
         agent_clustering.append(random.choice(partition))
-    change_chords_clustering.upper_bound = upper_bound
-    change_chords_clustering.W_len = len(W)
-    change_chords_clustering.songs_len = len(songs)
-    change_chords_clustering.stepsize = 0
-    return get_ints(
-        scipy.optimize.basinhopping(kemeny_clustering_target_func, W + agent_clustering + partition, niter=iters,
-                                    niter_success=750,
-                                    take_step=change_chords_clustering,
-                                    minimizer_kwargs={'args': (songs, len(W))}).x)
+    
+    best_partition, best_W, best_agent_clustering, best_score = simulated_annealing(songs, partition, W, agent_clustering, iters, upper_bound, success_limit)
+    
+    return best_partition, best_W, best_agent_clustering
 
 
 def get_variations(song, n):
