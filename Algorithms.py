@@ -163,7 +163,7 @@ def P(j, z, partition, k):
     if z < len(partition) - 1:
         return 1 if partition[z] <= j < partition[z + 1] else 0
     else:
-        return 1 if partition[z] <= j < k else 0
+        return 1 if partition[z] <= j <= k else 0
 
 
 def Q(i, z, agent_clustering):
@@ -175,12 +175,15 @@ def Q(i, z, agent_clustering):
 
 def kemeny_clustering_target_func(songs, partition, W, agent_clustering):
     total_distance = 0
+    pq=0
     for z in range(len(partition)):
         for i in range(len(songs)):
             for j in range(len(W)):
-                total_distance += P(j, z, partition, len(W)) * Q(i, z, agent_clustering) * \
-                                  chords_distances[songs[i][j]][W[j]]
-    return total_distance
+                p=P(j, z, partition, len(W))
+                q=Q(i, z, agent_clustering)
+                pq+=p*q
+                total_distance += p*q *(1-chords_distances[songs[i][j]][W[j]])
+    return total_distance/pq
 
 
 def simulated_annealing(songs, partition, W, agent_clustering, iters, upper_bound, success_limit):
@@ -188,12 +191,10 @@ def simulated_annealing(songs, partition, W, agent_clustering, iters, upper_boun
     current_W = W
     current_agent_clustering = agent_clustering
     current_score = kemeny_clustering_target_func(songs, current_partition, current_W, current_agent_clustering)
-
     best_partition = current_partition
     best_W = current_W
     best_agent_clustering = current_agent_clustering
     best_score = current_score
-
     progress_iters = 0  # Track the number of successful iterations
     success_limit_reached = False
 
@@ -203,7 +204,7 @@ def simulated_annealing(songs, partition, W, agent_clustering, iters, upper_boun
                                                                               current_agent_clustering, upper_bound)
         new_score = kemeny_clustering_target_func(songs, new_partition, new_W, new_agent_clustering)
 
-        delta_score = new_score - current_score
+        delta_score = current_score-new_score 
 
         if delta_score < 0 or random.random() < np.exp(-delta_score / T):
             current_partition = new_partition
@@ -212,11 +213,11 @@ def simulated_annealing(songs, partition, W, agent_clustering, iters, upper_boun
             current_score = new_score
             progress_iters += 1
 
-        if new_score < best_score:
+        if new_score > best_score:
             best_partition = new_partition
             best_W = new_W
             best_agent_clustering = new_agent_clustering
-            best_score = new_score
+            best_score = new_score      
 
         if progress_iters >= success_limit:
             success_limit_reached = True
