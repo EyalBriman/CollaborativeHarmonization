@@ -4,8 +4,6 @@ import random
 import scipy
 import numpy as np
 from two_gram import *
-# import gurobipy as gp
-# from gurobipy import GRB
 from DistanceOfTwoChords import chords_distances
 
 
@@ -25,11 +23,12 @@ def change_chords_clustering(partition, W, agent_clustering, upper_bound=4):
         agent_clustering[flag_1] = random.choice(partition)
     elif flag > 0.8 and flag <= 0.9:
         flag_2 = len(partition)
-        partition = random.sample(range(len(W)), flag_2)
+        partition = [0] + random.sample(range(1, len(W)), flag_2)
     else:
         flag_3 = np.random.randint(0, upper_bound + 1)
-        partition = random.sample(range(len(W)), flag_3)
+        partition = [0] + random.sample(range(1, len(W)), flag_3)
     return partition, W, agent_clustering
+
 
 def song_distance(song1, song2):
     return sum([chords_distances[song1[i]][song2[i]] for i in range(len(song1))]) / len(song1)
@@ -162,9 +161,10 @@ def majority_2gram(songs):
 
 def P(j, z, partition, k):
     if z < len(partition) - 1:
-        return 1 if z <= j < partition[z + 1] else 0
+        return 1 if partition[z] <= j < partition[z + 1] else 0
     else:
         return 1 if partition[z] <= j < k else 0
+
 
 def Q(i, z, agent_clustering):
     if agent_clustering[i] == z:
@@ -172,31 +172,35 @@ def Q(i, z, agent_clustering):
     else:
         return 0.5
 
+
 def kemeny_clustering_target_func(songs, partition, W, agent_clustering):
     total_distance = 0
-    for z in partition:
+    for z in range(len(partition)):
         for i in range(len(songs)):
             for j in range(len(W)):
-                total_distance += P(j, z, partition, len(W)) * Q(i, z, agent_clustering) * (1 - (1-chords_distances[songs[i][j]][W[j]]))
-    return (-1) * total_distance
+                total_distance += P(j, z, partition, len(W)) * Q(i, z, agent_clustering) * \
+                                  chords_distances[songs[i][j]][W[j]]
+    return total_distance
+
 
 def simulated_annealing(songs, partition, W, agent_clustering, iters, upper_bound, success_limit):
     current_partition = partition
     current_W = W
     current_agent_clustering = agent_clustering
     current_score = kemeny_clustering_target_func(songs, current_partition, current_W, current_agent_clustering)
-    
+
     best_partition = current_partition
     best_W = current_W
     best_agent_clustering = current_agent_clustering
     best_score = current_score
-    
+
     progress_iters = 0  # Track the number of successful iterations
     success_limit_reached = False
-    
+
     for iteration in range(iters):
-        T = max(1.0, (1.0 - iteration / iters))  # Annealing schedule
-        new_partition, new_W, new_agent_clustering = change_chords_clustering(current_partition, current_W, current_agent_clustering, upper_bound)
+        T = 1.0 - iteration / iters  # Annealing schedule
+        new_partition, new_W, new_agent_clustering = change_chords_clustering(current_partition, current_W,
+                                                                              current_agent_clustering, upper_bound)
         new_score = kemeny_clustering_target_func(songs, new_partition, new_W, new_agent_clustering)
 
         delta_score = new_score - current_score
@@ -222,17 +226,15 @@ def simulated_annealing(songs, partition, W, agent_clustering, iters, upper_boun
 
     return best_partition, best_W, best_agent_clustering, best_score
 
+
 def kemeny_clustering(songs, iters=5000, upper_bound=4, success_limit=750):
-    init = majority_algorithm(songs)
-    flag_3 = np.random.randint(0, upper_bound + 1)
-    partition = random.sample(range(len(W)), flag_3)
-    agent_clustering = []
-    for i in range(len(songs)):
-        agent_clustering.append(random.choice(partition))
-    
-    best_partition, best_W, best_agent_clustering, best_score = simulated_annealing(songs, partition, W, agent_clustering, iters, upper_bound, success_limit)
-    
-    return best_partition, best_W, best_agent_clustering
+    W = majority_algorithm(songs)
+    partition = [0]
+    agent_clustering = [0] * len(songs)
+    best_partition, best_W, best_agent_clustering, best_score = simulated_annealing(songs, partition, W,
+                                                                                    agent_clustering, iters,
+                                                                                    upper_bound, success_limit)
+    return best_W
 
 
 def get_variations(song, n):
@@ -269,12 +271,12 @@ if __name__ == '__main__':
                 success[j].append(song_distance(W, song))
                 sanity[j].append(get_chords_probability(W))
         with open(
-                'C:\\Users\\Eleizerovich\\OneDrive - Gita Technologies LTD\\Desktop\\School\\CollaborativeHarmonization\\success.json',
+                'C:\\Users\\Eleizerovich\\OneDrive - COGNYTE\\Desktop\\School\\CollaborativeHarmonization\\success.json',
                 'w') as f:
             json.dump((success, sanity), f)
     else:
         with open(
-                'C:\\Users\\Eleizerovich\\OneDrive - Gita Technologies LTD\\Desktop\\School\\CollaborativeHarmonization\\success.json',
+                'C:\\Users\\Eleizerovich\\OneDrive - COGNYTE\\Desktop\\School\\CollaborativeHarmonization\\success.json',
                 'r') as f:
             (success, sanity) = json.load(f)
     print([sum(x) / len(x) * 100 for x in success])
