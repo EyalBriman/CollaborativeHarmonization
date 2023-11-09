@@ -15,6 +15,9 @@ def change_chords(W):
 
 def change_chords_clustering(partition, W, agent_clustering, upper_bound=4):
     flag = random.random()
+    W = W.copy()
+    partition = partition.copy()
+    agent_clustering = agent_clustering.copy()
     if flag <= 0.4:
         place = np.random.randint(0, len(W))
         W[place] = (W[place] + np.random.randint(1, 120)) % 120
@@ -175,12 +178,14 @@ def Q(i, z, agent_clustering):
 
 def kemeny_clustering_target_func(songs, partition, W, agent_clustering):
     total_distance = 0
+    total_pq = 0
     for z in range(len(partition)):
         for i in range(len(songs)):
             for j in range(len(W)):
-                total_distance += P(j, z, partition, len(W)) * Q(i, z, agent_clustering) * \
-                                  chords_distances[songs[i][j]][W[j]]
-    return total_distance
+                pq = P(j, z, partition, len(W)) * Q(i, partition[z], agent_clustering)
+                total_pq += pq
+                total_distance += pq * chords_distances[songs[i][j]][W[j]]
+    return total_distance / total_pq
 
 
 def simulated_annealing(songs, partition, W, agent_clustering, iters, upper_bound, success_limit):
@@ -190,12 +195,11 @@ def simulated_annealing(songs, partition, W, agent_clustering, iters, upper_boun
     current_score = kemeny_clustering_target_func(songs, current_partition, current_W, current_agent_clustering)
 
     best_partition = current_partition
+    best_score = current_score
     best_W = current_W
     best_agent_clustering = current_agent_clustering
-    best_score = current_score
 
     progress_iters = 0  # Track the number of successful iterations
-    success_limit_reached = False
 
     for iteration in range(iters):
         T = 1.0 - iteration / iters  # Annealing schedule
@@ -210,6 +214,9 @@ def simulated_annealing(songs, partition, W, agent_clustering, iters, upper_boun
             current_W = new_W
             current_agent_clustering = new_agent_clustering
             current_score = new_score
+            progress_iters = 0
+
+        if delta_score > 0:
             progress_iters += 1
 
         if new_score < best_score:
@@ -219,9 +226,6 @@ def simulated_annealing(songs, partition, W, agent_clustering, iters, upper_boun
             best_score = new_score
 
         if progress_iters >= success_limit:
-            success_limit_reached = True
-
-        if success_limit_reached and progress_iters >= success_limit:
             break
 
     return best_partition, best_W, best_agent_clustering, best_score
@@ -279,6 +283,7 @@ if __name__ == '__main__':
                 'C:\\Users\\Eleizerovich\\OneDrive - COGNYTE\\Desktop\\School\\CollaborativeHarmonization\\success.json',
                 'r') as f:
             (success, sanity) = json.load(f)
+    plt.interactive(False)
     print([sum(x) / len(x) * 100 for x in success])
     x = np.arange(len(success[0]))
     w = 0.8 / len(success)
@@ -291,11 +296,11 @@ if __name__ == '__main__':
     algorithm_names = ['Majority', 'Majority-2gram', 'Kemeny', 'Kemeny-2gram', 'Proportional', 'Proportional-2gram',
                        'Kemeny Clustering']
     plt.legend(algorithm_names)
-    plt.show()
+    plt.show(block=True)
     for i, y in enumerate(sanity):
         plt.bar(x + (i - len(sanity) / 2) * w, [math.exp(z) for z in y], width=w)
     plt.title('Algorithm Musical suitability')
     plt.xlabel('Iteration')
     plt.ylabel('Musical Suitability')
     plt.legend(algorithm_names)
-    plt.show()
+    plt.show(block=True)
