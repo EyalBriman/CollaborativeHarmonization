@@ -166,7 +166,7 @@ def P(j, z, partition, k):
     if z < len(partition) - 1:
         return 1 if partition[z] <= j < partition[z + 1] else 0
     else:
-        return 1 if partition[z] <= j < k else 0
+        return 1 if partition[z] <= j <= k else 0
 
 
 def Q(i, z, agent_clustering):
@@ -193,12 +193,10 @@ def simulated_annealing(songs, partition, W, agent_clustering, iters, upper_boun
     current_W = W
     current_agent_clustering = agent_clustering
     current_score = kemeny_clustering_target_func(songs, current_partition, current_W, current_agent_clustering)
-
     best_partition = current_partition
     best_score = current_score
     best_W = current_W
     best_agent_clustering = current_agent_clustering
-
     progress_iters = 0  # Track the number of successful iterations
 
     for iteration in range(iters):
@@ -216,7 +214,7 @@ def simulated_annealing(songs, partition, W, agent_clustering, iters, upper_boun
             current_score = new_score
             progress_iters = 0
 
-        if delta_score > 0:
+        if delta_score < 0:
             progress_iters += 1
 
         if new_score < best_score:
