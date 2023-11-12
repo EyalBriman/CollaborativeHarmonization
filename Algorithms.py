@@ -231,6 +231,7 @@ def simulated_annealing(songs, partition, W, agent_clustering, iters, upper_boun
 
 def kemeny_clustering(songs, iters=5000, upper_bound=4, success_limit=750):
     W = majority_algorithm(songs)
+    upper_bound = min(len(W) - 1, upper_bound)
     partition = [0]
     agent_clustering = [0] * len(songs)
     best_partition, best_W, best_agent_clustering, best_score = simulated_annealing(songs, partition, W,
@@ -239,15 +240,17 @@ def kemeny_clustering(songs, iters=5000, upper_bound=4, success_limit=750):
     return best_W
 
 
-def get_variations(song, n):
+def get_variations(song, voters, errors):
     songs = []
-    for i in range(n):
+    for i in range(voters):
         songs.append(song.copy())
-        for j in range(numpy.random.randint(len(songs), len(song) * 4)):
+        for j in range(numpy.random.randint(len(song) * errors[0], len(song) * errors[1])):
             place = numpy.random.randint(0, len(song))
             c = songs[-1][place]
             d = chords_distances[c][:c] + [1] + chords_distances[c][c + 1:]
-            songs[-1][place] = numpy.random.choice([i for i, x in enumerate(d) if x <= max(0.5, min(d))])
+            w = [1 - x for x in d]
+            w = [x / sum(w) for x in w]
+            songs[-1][place] = random.choices([i for i, x in enumerate(d)], weights=w)[0]
     return songs
 
 
@@ -257,48 +260,58 @@ if __name__ == '__main__':
         probs = create_2_gram_probability(all_songs)
         algorithms = [majority_algorithm, majority_2gram, kemeny, kemeny_2gram, proportional_algorithm,
                       proportional_2gram_algorithm, kemeny_clustering]
+        errors = [[0, 1], [1, 2], [2, 3], [3, 4]]
+        iters = 1
+        voters = [8, 16, 32]
         success = []
         sanity = []
-        for i in range(len(algorithms)):
-            success.append([])
-            sanity.append([])
-
-        iters = 1
-        voters = 8
-        for i in range(iters):
-            song = get_chords(random.choice(all_songs))
-            songs = get_variations(song, voters)
-            for j in range(len(algorithms)):
-                W = algorithms[j](songs)
-                success[j].append(song_distance(W, song))
-                sanity[j].append(get_chords_probability(W))
-        with open(
-                'C:\\Users\\Eleizerovich\\OneDrive - COGNYTE\\Desktop\\School\\CollaborativeHarmonization\\success.json',
-                'w') as f:
-            json.dump((success, sanity), f)
+        names = []
+        for errs in errors:
+            for vs in voters:
+                names.append('Errors (' + str(errs[0]) + ',' + str(errs[1]) + ') Voters ' + str(vs))
+                success.append([])
+                sanity.append([])
+                for i in range(len(algorithms)):
+                    success[-1].append([])
+                    sanity[-1].append([])
+                for i in range(iters):
+                    song = get_chords(random.choice(all_songs))
+                    songs = get_variations(song, vs, errs)
+                    for j in range(len(algorithms)):
+                        W = algorithms[j](songs)
+                        success[-1][j].append(song_distance(W, song))
+                        sanity[-1][j].append(get_chords_probability(W))
+        with open('success.json', 'w') as f:
+            json.dump((success, sanity, names), f)
     else:
-        with open(
-                'C:\\Users\\Eleizerovich\\OneDrive - COGNYTE\\Desktop\\School\\CollaborativeHarmonization\\success.json',
-                'r') as f:
-            (success, sanity) = json.load(f)
-    plt.interactive(False)
-    print([sum(x) / len(x) * 100 for x in success])
-    x = np.arange(len(success[0]))
-    w = 0.8 / len(success)
-    for i, y in enumerate(success):
-        plt.bar(x + (i - len(success) / 2) * w, y, width=w)
-    plt.xticks(x, [str(y) for y in x])
-    plt.title('Algorithms Distance')
-    plt.xlabel('Iteration')
-    plt.ylabel('Distance')
+        with open('success.json', 'r') as f:
+            success, sanity, names = json.load(f)
     algorithm_names = ['Majority', 'Majority-2gram', 'Kemeny', 'Kemeny-2gram', 'Proportional', 'Proportional-2gram',
                        'Kemeny Clustering']
-    plt.legend(algorithm_names)
-    plt.show(block=True)
-    for i, y in enumerate(sanity):
-        plt.bar(x + (i - len(sanity) / 2) * w, [math.exp(z) for z in y], width=w)
-    plt.title('Algorithm Musical suitability')
-    plt.xlabel('Iteration')
-    plt.ylabel('Musical Suitability')
-    plt.legend(algorithm_names)
-    plt.show(block=True)
+    print('Distance')
+    for j, s in enumerate(success):
+        print(names[j])
+        print([sum(x) / len(x) * 100 for x in s])
+        x = np.arange(len(s[0]))
+        w = 0.8 / len(s)
+
+        for i, y in enumerate(s):
+            plt.bar(x + (i - len(s) / 2) * w, y, width=w)
+        plt.xticks(x, [str(y) for y in x])
+        plt.title('Algorithms Distance')
+        plt.xlabel('Iteration')
+        plt.ylabel('Distance')
+        plt.legend(algorithm_names)
+    print('Sanity')
+    for j, s in enumerate(sanity):
+        print(names[j])
+        print([sum([math.exp(z) for z in x]) / len(x) * 100 for x in s])
+        x = np.arange(len(s[0]))
+        w = 0.8 / len(s)
+        for i, y in enumerate(s):
+            plt.bar(x + (i - len(s) / 2) * w, [math.exp(z) for z in y], width=w)
+        plt.title('Algorithm Musical suitability')
+        plt.xticks(x, [str(y) for y in x])
+        plt.xlabel('Iteration')
+        plt.ylabel('Musical Suitability')
+        plt.legend(algorithm_names)
