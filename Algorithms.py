@@ -80,13 +80,13 @@ def majority_algorithm(songs):
     return list(numpy.argmax(majority, axis=0))
 
 
-def proportional_algorithm(songs, iters=5000, init_with_majority=True):
+def proportional_algorithm(songs, iters=10000, init_with_majority=True):
     if init_with_majority:
         init = majority_algorithm(songs)
     else:
         init = numpy.random.randint(0, len(chords_distances), len(songs[0]))
     change_chords.stepsize = 20
-    return get_ints(scipy.optimize.basinhopping(proportional_target_func, init, niter=iters, niter_success=750,
+    return get_ints(scipy.optimize.basinhopping(proportional_target_func, init, niter=iters, niter_success=2500,
                                                 take_step=change_chords, minimizer_kwargs={'args': songs}).x)
 
 
@@ -104,14 +104,14 @@ def kemeny(songs):
     return W
 
 
-def proportional_2gram_algorithm(songs, iters=5000, init_with_majority=True):
+def proportional_2gram_algorithm(songs, iters=10000, init_with_majority=True):
     if init_with_majority:
         init = majority_algorithm(songs)
     else:
         init = numpy.random.randint(0, len(chords_distances), len(songs[0]))
     change_chords.stepsize = 20
     return get_ints(
-        scipy.optimize.basinhopping(proportional_2gram_target_func, init, niter=iters, niter_success=750,
+        scipy.optimize.basinhopping(proportional_2gram_target_func, init, niter=iters, niter_success=2500,
                                     take_step=change_chords, minimizer_kwargs={'args': songs}).x)
 
 
@@ -127,7 +127,7 @@ def kemeny_2gram(songs):
             min_d = math.inf
             for j in range(len(chords_distances)):
                 for m in range(len(chords_distances)):
-                    d = base_T[j] + T[m] + probs[m][j]
+                    d = base_T[j] + T[m] - 0.1 * probs[m][j]
                     if d < min_d:
                         min_d = d
                 new_T.append(min_d)
@@ -145,13 +145,13 @@ def majority_2gram(songs):
         base_T = [0] * len(chords_distances)
         for j in range(len(chords_distances)):
             for song in songs:
-                base_T[song[i]] -= 1
+                base_T[song[i]] -= 1 / len(songs)
         if i > 0:
             new_T = []
             min_d = math.inf
             for j in range(len(chords_distances)):
                 for m in range(len(chords_distances)):
-                    d = base_T[j] + T[m] + probs[m][j]
+                    d = base_T[j] + T[m] - probs[m][j]
                     if d < min_d:
                         min_d = d
                 new_T.append(min_d)
@@ -214,7 +214,7 @@ def simulated_annealing(songs, partition, W, agent_clustering, iters, upper_boun
             current_score = new_score
             progress_iters = 0
 
-        if delta_score < 0:
+        if delta_score > 0:
             progress_iters += 1
 
         if new_score < best_score:
@@ -229,7 +229,7 @@ def simulated_annealing(songs, partition, W, agent_clustering, iters, upper_boun
     return best_partition, best_W, best_agent_clustering, best_score
 
 
-def kemeny_clustering(songs, iters=5000, upper_bound=4, success_limit=750):
+def kemeny_clustering(songs, iters=10000, upper_bound=4, success_limit=2500):
     W = majority_algorithm(songs)
     upper_bound = min(len(W) - 1, upper_bound)
     partition = [0]
@@ -238,6 +238,18 @@ def kemeny_clustering(songs, iters=5000, upper_bound=4, success_limit=750):
                                                                                     agent_clustering, iters,
                                                                                     upper_bound, success_limit)
     return best_W
+
+
+def cluster_distance(voters, W, window_size=16):
+    s = 0
+    for v in voters:
+        min_dist = np.inf
+        for i in range(len(W) - window_size):
+            d = song_distance(v[i:i + window_size], W[i:i + window_size])
+            if d < min_dist:
+                min_dist = d
+        s += min_dist
+    return s / len(voters)
 
 
 def get_variations(song, voters, errors):
@@ -263,17 +275,23 @@ if __name__ == '__main__':
         errors = [[0, 1], [1, 2], [2, 3], [3, 4]]
         iters = 1
         voters = [8, 16, 32]
+        errors = [errors[0]]
+        voters = [voters[0]]
+
+        cluster_d = []
         success = []
         sanity = []
         names = []
         for errs in errors:
             for vs in voters:
                 names.append('Errors (' + str(errs[0]) + ',' + str(errs[1]) + ') Voters ' + str(vs))
+                cluster_d.append([])
                 success.append([])
                 sanity.append([])
                 for i in range(len(algorithms)):
                     success[-1].append([])
                     sanity[-1].append([])
+                    cluster_d[-1].append([])
                 for i in range(iters):
                     song = get_chords(random.choice(all_songs))
                     songs = get_variations(song, vs, errs)
@@ -281,11 +299,12 @@ if __name__ == '__main__':
                         W = algorithms[j](songs)
                         success[-1][j].append(song_distance(W, song))
                         sanity[-1][j].append(get_chords_probability(W))
+                        cluster_d[-1][j].append(cluster_distance(songs, W))
         with open('success.json', 'w') as f:
-            json.dump((success, sanity, names), f)
+            json.dump((success, sanity, cluster_d, names), f)
     else:
         with open('success.json', 'r') as f:
-            success, sanity, names = json.load(f)
+            success, sanity, cluster_d, names = json.load(f)
     algorithm_names = ['Majority', 'Majority-2gram', 'Kemeny', 'Kemeny-2gram', 'Proportional', 'Proportional-2gram',
                        'Kemeny Clustering']
     print('Distance')
@@ -299,6 +318,21 @@ if __name__ == '__main__':
             plt.bar(x + (i - len(s) / 2) * w, y, width=w)
         plt.xticks(x, [str(y) for y in x])
         plt.title('Algorithms Distance')
+        plt.xlabel('Iteration')
+        plt.ylabel('Distance')
+        plt.legend(algorithm_names)
+
+    print('Cluster Distance')
+    for j, s in enumerate(cluster_d):
+        print(names[j])
+        print([sum(x) / len(x) * 100 for x in s])
+        x = np.arange(len(s[0]))
+        w = 0.8 / len(s)
+
+        for i, y in enumerate(s):
+            plt.bar(x + (i - len(s) / 2) * w, y, width=w)
+        plt.xticks(x, [str(y) for y in x])
+        plt.title('Algorithms Cluster Distance')
         plt.xlabel('Iteration')
         plt.ylabel('Distance')
         plt.legend(algorithm_names)

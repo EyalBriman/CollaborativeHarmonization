@@ -2,11 +2,13 @@ import json
 import numpy
 from DistanceOfTwoChords import *
 
-all_valid_qualities = {'': '^7', '5': '^7', '2': '^7', 'add9': '^7', '+': '+^7', 'o': 'o', 'h': '-7b5', 'sus': '^7', '^': '^7',
+all_valid_qualities = {'': '^7', '5': '^7', '2': '^7', 'add9': '^7', '+': '+^7', 'o': 'o', 'h': '-7b5', 'sus': '^7',
+                       '^': '^7',
                        '-': '-7', '^7': '^7', '-7': '-7', '7': '7', '7sus': '7', 'h7': '-7b5', 'o7': 'o', 'o^7': 'o^7',
                        '^9': '^7', '^13': '^7', '6': '^7', '69': '^7', '^7#11': '^7', '^9#11': '^7', '^7#5': '+^7',
                        '-6': '-6', '-69': '-6', '-^7': '-^7', '-^9': '-^7', '-9': '-7', '-11': '-7', '-7b5': '-7b5',
-                       'h9': '-7b5', '-b6': '^7', '-#5': '^7', '9': '7', '7b9': '7', '7#9': '7', '7#11': '7', '7b5': '7',
+                       'h9': '-7b5', '-b6': '^7', '-#5': '^7', '9': '7', '7b9': '7', '7#9': '7', '7#11': '7',
+                       '7b5': '7',
                        '7#5': '+7', '9#11': '7', '9b5': '7', '9#5': '+7', '7b13': '+7', '7#9#5': '+7', '7#9b5': '7',
                        '7#9#11': '7', '7b9#11': '7', '7b9b5': '7', '7b9#5': '+7', '7b9#9': '7', '7b9b13': '+7',
                        '7alt': '+7', '13': '7', '13#11': '7', '13b9': '7', '13#9': '7', '7b9sus': '7', '7susadd3': '7',
@@ -137,7 +139,42 @@ def test_grams(songs, n=3, k=10):
 
 def load_songs():
     with open('songs.json', "r") as file:
-        return json.load(file)
+        songs = json.load(file)
+    res = []
+    for song in songs:
+        s = []
+        if 1:
+            if all([len(bar) <= 2 for bar in song]):
+                for bar in song:
+                    if len(bar) == 1:
+                        for i in range(2):
+                            b.append(bar[0])
+                    else:
+                        b = bar
+                    s.append(b)
+        else:
+            if all([len(bar) <= 4 for bar in song]):
+                for bar in song:
+                    b = []
+                    if len(bar) == 1:
+                        for i in range(4):
+                            b.append(bar[0])
+                    elif len(bar) == 2:
+                        for i in range(2):
+                            b.append(bar[0])
+                        for i in range(2):
+                            b.append(bar[1])
+                    elif len(bar) == 3:
+                        b.append(bar[0])
+                        b.append(bar[1])
+                        for i in range(2):
+                            b.append(bar[2])
+                    elif len(bar) == 4:
+                        b = bar
+                    s.append(b)
+        if s:
+            res.append(s)
+    return res
 
 
 if __name__ == '__main__':
