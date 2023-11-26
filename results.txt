@@ -1,75 +1,39 @@
 Distance
-Errors (0,1) Voters 8
-[0.4139935664534684, 0.3106295046063281, 0.4597368413513681, 0.3920160462964958, 0.4139935664534684, 0.4139935664534684, 1.0069915850783107, 0.4700940586341587]
-Errors (0,1) Voters 16
-[0.0011808026392638408, 0.0014559509040218527, 0.003971101863854858, 0.0029386619024000787, 0.0011808026392638408, 0.0011808026392638408, 0.3577702576043124, 0.030823003405769073]
-Errors (0,1) Voters 32
-[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.07315499615787287, 0.006129613946181639]
-Errors (1,2) Voters 8
-[25.632865397711573, 23.377225604690686, 22.125251511786193, 21.357441230095393, 25.638483736300437, 25.638249098713782, 25.952797352030142, 25.698622209854683]
-Errors (1,2) Voters 16
-[8.90644069007295, 7.167016389035355, 8.767423397553422, 8.225292362411539, 8.914283827327852, 8.916146859596028, 9.116335804672604, 8.929102544480788]
-Errors (1,2) Voters 32
-[0.7645617336691676, 0.5925755381361221, 1.3555633081096106, 1.3003496106723467, 0.7645617336691676, 0.7645617336691676, 0.9137121664671468, 0.7673856688306784]
-Errors (2,3) Voters 8
-[57.970148324227786, 56.94148832403177, 52.17132353648385, 51.824753995569786, 57.96017860984632, 57.96970327783711, 58.0405008670144, 58.613115475358235]
-Errors (2,3) Voters 16
-[43.99675076247649, 42.403260476217085, 40.6934543826571, 40.492939132838096, 43.99879722996328, 44.005215271256525, 44.148543880111134, 44.60703472820245]
-Errors (2,3) Voters 32
-[26.951528400757713, 23.90467303789197, 26.06269066387942, 25.606859809655248, 26.95309982932914, 26.96354803019893, 27.04848246902204, 27.42812522289601]
-Errors (3,4) Voters 8
-[70.10055356090636, 70.47109816380781, 66.51743894236331, 66.42019420583446, 70.10035820538283, 70.1162313500849, 70.1202071237858, 70.71180491533315]
-Errors (3,4) Voters 16
-[65.76071920818536, 65.9762352510585, 62.07569239365518, 61.958867433754335, 65.76663633080257, 65.78270074660323, 65.77507125462583, 66.66198073950633]
-Errors (3,4) Voters 32
-[59.61940750078424, 58.44627528696367, 54.03104908218893, 53.88379937979273, 59.62346452366841, 59.643184902026405, 59.64466496407813, 61.61371739499531]
+Errors (0,1) Voters 8: Majority 0.41, Majority + 2gram 0.31, Kemeny 0.46, Kemeny + 2gram 0.39, Proportional 0.41, Proportional + 2gram 0.41, Kemeny Clustering 1, Kemeny Clustering + 2gram 0.47
+Errors (0,1) Voters 16: Majority 0.0012, Majority + 2gram 0.0015, Kemeny 0.004, Kemeny + 2gram 0.0029, Proportional 0.0012, Proportional + 2gram 0.0012, Kemeny Clustering 0.36, Kemeny Clustering + 2gram 0.031
+Errors (0,1) Voters 32: Majority 0, Majority + 2gram 0, Kemeny 0, Kemeny + 2gram 0, Proportional 0, Proportional + 2gram 0, Kemeny Clustering 0.073, Kemeny Clustering + 2gram 0.0061
+Errors (1,2) Voters 8: Majority 26, Majority + 2gram 23, Kemeny 22, Kemeny + 2gram 21, Proportional 26, Proportional + 2gram 26, Kemeny Clustering 26, Kemeny Clustering + 2gram 26
+Errors (1,2) Voters 16: Majority 8.9, Majority + 2gram 7.2, Kemeny 8.8, Kemeny + 2gram 8.2, Proportional 8.9, Proportional + 2gram 8.9, Kemeny Clustering 9.1, Kemeny Clustering + 2gram 8.9
+Errors (1,2) Voters 32: Majority 0.76, Majority + 2gram 0.59, Kemeny 1.4, Kemeny + 2gram 1.3, Proportional 0.76, Proportional + 2gram 0.76, Kemeny Clustering 0.91, Kemeny Clustering + 2gram 0.77
+Errors (2,3) Voters 8: Majority 58, Majority + 2gram 57, Kemeny 52, Kemeny + 2gram 52, Proportional 58, Proportional + 2gram 58, Kemeny Clustering 58, Kemeny Clustering + 2gram 59
+Errors (2,3) Voters 16: Majority 44, Majority + 2gram 42, Kemeny 41, Kemeny + 2gram 40, Proportional 44, Proportional + 2gram 44, Kemeny Clustering 44, Kemeny Clustering + 2gram 45
+Errors (2,3) Voters 32: Majority 27, Majority + 2gram 24, Kemeny 26, Kemeny + 2gram 26, Proportional 27, Proportional + 2gram 27, Kemeny Clustering 27, Kemeny Clustering + 2gram 27
+Errors (3,4) Voters 8: Majority 70, Majority + 2gram 70, Kemeny 67, Kemeny + 2gram 66, Proportional 70, Proportional + 2gram 70, Kemeny Clustering 70, Kemeny Clustering + 2gram 71
+Errors (3,4) Voters 16: Majority 66, Majority + 2gram 66, Kemeny 62, Kemeny + 2gram 62, Proportional 66, Proportional + 2gram 66, Kemeny Clustering 66, Kemeny Clustering + 2gram 67
+Errors (3,4) Voters 32: Majority 60, Majority + 2gram 58, Kemeny 54, Kemeny + 2gram 54, Proportional 60, Proportional + 2gram 60, Kemeny Clustering 60, Kemeny Clustering + 2gram 62
 Cluster Distance
-Errors (0,1) Voters 8
-[7.140327380952381, 7.118973214285715, 7.132291666666666, 7.108556547619048, 7.140327380952381, 7.140327380952381, 7.280580357142857, 7.15639880952381]
-Errors (0,1) Voters 16
-[6.996540178571429, 6.996540178571429, 6.996540178571429, 6.994977678571429, 6.996540178571429, 6.996540178571429, 7.080133928571429, 6.9985863095238106]
-Errors (0,1) Voters 32
-[7.023604910714286, 7.023604910714286, 7.023604910714286, 7.023604910714286, 7.023604910714286, 7.023604910714286, 7.031529017857144, 7.023604910714286]
-Errors (1,2) Voters 8
-[28.507886904761907, 28.37217261904762, 27.039508928571433, 27.35022321428572, 28.504092261904763, 28.507738095238093, 28.665029761904766, 28.5530505952381]
-Errors (1,2) Voters 16
-[30.368452380952384, 30.385900297619052, 30.16796875, 30.20915178571429, 30.366889880952385, 30.37481398809524, 30.4374255952381, 30.380357142857147]
-Errors (1,2) Voters 32
-[30.393954613095243, 30.39771205357143, 30.380338541666667, 30.383035714285718, 30.393954613095243, 30.393954613095243, 30.44404761904762, 30.39397321428571]
-Errors (2,3) Voters 8
-[40.28333333333334, 40.413764880952385, 36.85885416666667, 37.595014880952384, 40.29561011904762, 40.28013392857143, 40.356101190476195, 40.92053571428572]
-Errors (2,3) Voters 16
-[44.05163690476191, 44.18292410714286, 42.52916666666667, 42.79397321428572, 44.052715773809524, 44.06004464285714, 44.11696428571429, 44.291294642857146]
-Errors (2,3) Voters 32
-[45.960286458333336, 46.01796875, 45.06099330357143, 45.01316964285714, 45.96186755952381, 45.960918898809524, 46.003255208333336, 46.104073660714285]
-Errors (3,4) Voters 8
-[42.54025297619048, 42.47566964285715, 38.79114583333334, 39.43794642857143, 42.539880952380955, 42.57209821428572, 42.647023809523816, 43.78638392857143]
-Errors (3,4) Voters 16
-[48.123028273809524, 48.34888392857143, 46.011235119047626, 46.305505952380955, 48.11417410714286, 48.13720238095238, 48.15282738095238, 49.315625000000004]
-Errors (3,4) Voters 32
-[50.87152157738095, 51.07537202380953, 49.29979538690476, 49.34462425595238, 50.871484374999994, 50.90048363095237, 50.90788690476191, 52.022433035714286]
-Sanity
-Errors (0,1) Voters 8
-[12.395693292483957, 12.773617649592609, 10.995660838234636, 11.329427440018684, 12.395693292483957, 12.3974639126832, 10.951752890294907, 12.230539897577518]
-Errors (0,1) Voters 16
-[13.065393550422549, 13.063522351024345, 11.789513062501351, 11.679387696234992, 13.065393550422549, 13.065393550422549, 12.02423155956712, 12.986762994164309]
-Errors (0,1) Voters 32
-[13.493297136751012, 13.493297136751012, 12.267277861715462, 11.927862536486865, 13.493297136751012, 13.493297136751012, 13.295550552097165, 13.478342173669178]
-Errors (1,2) Voters 8
-[0.17560175947748466, 0.3131362013339202, 0.11768941412989581, 0.2974967619933696, 0.17520308894138423, 0.17630726067679064, 0.16583968344402675, 0.17693591090249458]
-Errors (1,2) Voters 16
-[2.3247577663951806, 3.7480346879396853, 1.4322927949330513, 2.401616109031437, 2.3234630574236657, 2.32978103858271, 2.2262282566831373, 2.327542437939795]
-Errors (1,2) Voters 32
-[10.836108961459676, 11.620868810133276, 7.934049141387517, 8.311091667272045, 10.836108961459676, 10.836108961459676, 10.463039249079097, 10.837836074852751]
-Errors (2,3) Voters 8
-[0.0024634486554263434, 0.006561737552344813, 0.0012363984845632674, 0.0052348584658886725, 0.0024638702054633264, 0.0024846842547541145, 0.0024341538540404396, 0.0030833154903978453]
-Errors (2,3) Voters 16
-[0.010219240942661464, 0.01910651917589462, 0.004302418393664696, 0.015735924218227684, 0.010215235545289799, 0.010267259331316166, 0.009744951567839392, 0.010662811079531959]
-Errors (2,3) Voters 32
-[0.09177221153754815, 0.2985915712616518, 0.03539824892051601, 0.09887762071541192, 0.091534068953162, 0.09204013429676682, 0.08969787835026163, 0.09332190989906579]
-Errors (3,4) Voters 8
-[0.0008270231172893891, 0.002363779366073991, 0.00042261694919861343, 0.0018273035368114002, 0.0008274298683591477, 0.0008467358297944777, 0.0008208492012399913, 0.0011179948893054426]
-Errors (3,4) Voters 16
-[0.000906720579321188, 0.0021101611901577525, 0.0005006486556725004, 0.001991877031794434, 0.0009069514805062077, 0.0009226417099059056, 0.0009058549973181729, 0.001099212087736699]
-Errors (3,4) Voters 32
-[0.0011912896916583691, 0.00514280306155241, 0.0009603898826714645, 0.0031249212204886453, 0.0011905805608136233, 0.00121950401171187, 0.0011858308489899967, 0.0014096313395860504]
+Errors (0,1) Voters 8: Majority 7.1, Majority + 2gram 7.1, Kemeny 7.1, Kemeny + 2gram 7.1, Proportional 7.1, Proportional + 2gram 7.1, Kemeny Clustering 7.3, Kemeny Clustering + 2gram 7.2
+Errors (0,1) Voters 16: Majority 7, Majority + 2gram 7, Kemeny 7, Kemeny + 2gram 7, Proportional 7, Proportional + 2gram 7, Kemeny Clustering 7.1, Kemeny Clustering + 2gram 7
+Errors (0,1) Voters 32: Majority 7, Majority + 2gram 7, Kemeny 7, Kemeny + 2gram 7, Proportional 7, Proportional + 2gram 7, Kemeny Clustering 7, Kemeny Clustering + 2gram 7
+Errors (1,2) Voters 8: Majority 29, Majority + 2gram 28, Kemeny 27, Kemeny + 2gram 27, Proportional 29, Proportional + 2gram 29, Kemeny Clustering 29, Kemeny Clustering + 2gram 29
+Errors (1,2) Voters 16: Majority 30, Majority + 2gram 30, Kemeny 30, Kemeny + 2gram 30, Proportional 30, Proportional + 2gram 30, Kemeny Clustering 30, Kemeny Clustering + 2gram 30
+Errors (1,2) Voters 32: Majority 30, Majority + 2gram 30, Kemeny 30, Kemeny + 2gram 30, Proportional 30, Proportional + 2gram 30, Kemeny Clustering 30, Kemeny Clustering + 2gram 30
+Errors (2,3) Voters 8: Majority 40, Majority + 2gram 40, Kemeny 37, Kemeny + 2gram 38, Proportional 40, Proportional + 2gram 40, Kemeny Clustering 40, Kemeny Clustering + 2gram 41
+Errors (2,3) Voters 16: Majority 44, Majority + 2gram 44, Kemeny 43, Kemeny + 2gram 43, Proportional 44, Proportional + 2gram 44, Kemeny Clustering 44, Kemeny Clustering + 2gram 44
+Errors (2,3) Voters 32: Majority 46, Majority + 2gram 46, Kemeny 45, Kemeny + 2gram 45, Proportional 46, Proportional + 2gram 46, Kemeny Clustering 46, Kemeny Clustering + 2gram 46
+Errors (3,4) Voters 8: Majority 43, Majority + 2gram 42, Kemeny 39, Kemeny + 2gram 39, Proportional 43, Proportional + 2gram 43, Kemeny Clustering 43, Kemeny Clustering + 2gram 44
+Errors (3,4) Voters 16: Majority 48, Majority + 2gram 48, Kemeny 46, Kemeny + 2gram 46, Proportional 48, Proportional + 2gram 48, Kemeny Clustering 48, Kemeny Clustering + 2gram 49
+Errors (3,4) Voters 32: Majority 51, Majority + 2gram 51, Kemeny 49, Kemeny + 2gram 49, Proportional 51, Proportional + 2gram 51, Kemeny Clustering 51, Kemeny Clustering + 2gram 52
+Musical Suitability
+Errors (0,1) Voters 8: Majority 12, Majority + 2gram 13, Kemeny 11, Kemeny + 2gram 11, Proportional 12, Proportional + 2gram 12, Kemeny Clustering 11, Kemeny Clustering + 2gram 12
+Errors (0,1) Voters 16: Majority 13, Majority + 2gram 13, Kemeny 12, Kemeny + 2gram 12, Proportional 13, Proportional + 2gram 13, Kemeny Clustering 12, Kemeny Clustering + 2gram 13
+Errors (0,1) Voters 32: Majority 13, Majority + 2gram 13, Kemeny 12, Kemeny + 2gram 12, Proportional 13, Proportional + 2gram 13, Kemeny Clustering 13, Kemeny Clustering + 2gram 13
+Errors (1,2) Voters 8: Majority 0.18, Majority + 2gram 0.31, Kemeny 0.12, Kemeny + 2gram 0.3, Proportional 0.18, Proportional + 2gram 0.18, Kemeny Clustering 0.17, Kemeny Clustering + 2gram 0.18
+Errors (1,2) Voters 16: Majority 2.3, Majority + 2gram 3.7, Kemeny 1.4, Kemeny + 2gram 2.4, Proportional 2.3, Proportional + 2gram 2.3, Kemeny Clustering 2.2, Kemeny Clustering + 2gram 2.3
+Errors (1,2) Voters 32: Majority 11, Majority + 2gram 12, Kemeny 7.9, Kemeny + 2gram 8.3, Proportional 11, Proportional + 2gram 11, Kemeny Clustering 10, Kemeny Clustering + 2gram 11
+Errors (2,3) Voters 8: Majority 0.0025, Majority + 2gram 0.0066, Kemeny 0.0012, Kemeny + 2gram 0.0052, Proportional 0.0025, Proportional + 2gram 0.0025, Kemeny Clustering 0.0024, Kemeny Clustering + 2gram 0.0031
+Errors (2,3) Voters 16: Majority 0.01, Majority + 2gram 0.019, Kemeny 0.0043, Kemeny + 2gram 0.016, Proportional 0.01, Proportional + 2gram 0.01, Kemeny Clustering 0.0097, Kemeny Clustering + 2gram 0.011
+Errors (2,3) Voters 32: Majority 0.092, Majority + 2gram 0.3, Kemeny 0.035, Kemeny + 2gram 0.099, Proportional 0.092, Proportional + 2gram 0.092, Kemeny Clustering 0.09, Kemeny Clustering + 2gram 0.093
+Errors (3,4) Voters 8: Majority 0.00083, Majority + 2gram 0.0024, Kemeny 0.00042, Kemeny + 2gram 0.0018, Proportional 0.00083, Proportional + 2gram 0.00085, Kemeny Clustering 0.00082, Kemeny Clustering + 2gram 0.0011
+Errors (3,4) Voters 16: Majority 0.00091, Majority + 2gram 0.0021, Kemeny 0.0005, Kemeny + 2gram 0.002, Proportional 0.00091, Proportional + 2gram 0.00092, Kemeny Clustering 0.00091, Kemeny Clustering + 2gram 0.0011
+Errors (3,4) Voters 32: Majority 0.0012, Majority + 2gram 0.0051, Kemeny 0.00096, Kemeny + 2gram 0.0031, Proportional 0.0012, Proportional + 2gram 0.0012, Kemeny Clustering 0.0012, Kemeny Clustering + 2gram 0.0014

@@ -314,7 +314,7 @@ def get_variations(song, voters, errors):
 
 
 if __name__ == '__main__':
-    if 1:
+    if 0:
         all_songs = load_songs()
         probs = create_2_gram_probability(all_songs)
         algorithms = [majority_algorithm, majority_2gram, kemeny, kemeny_2gram, proportional_algorithm,
@@ -353,45 +353,76 @@ if __name__ == '__main__':
             success, sanity, cluster_d, names = json.load(f)
     algorithm_names = ['Majority', 'Majority + 2gram', 'Kemeny', 'Kemeny + 2gram', 'Proportional',
                        'Proportional + 2gram', 'Kemeny Clustering', 'Kemeny Clustering + 2gram']
-    print('Distance')
+    res = 'Distance\n'
     for j, s in enumerate(success):
-        print(names[j])
-        print([sum(x) / len(x) * 100 for x in s])
+        res += names[j] + ': '
+        res += ', '.join(algorithm_names[i] + ' {0:.2g}'.format(x) for i, x in enumerate([sum(x) / len(x) * 100 for x in s])) + '\n'
+    res += 'Cluster Distance\n'
+    for j, s in enumerate(cluster_d):
+        res += names[j] + ': '
+        res += ', '.join(algorithm_names[i] + ' {0:.2g}'.format(x) for i, x in enumerate([sum(x) / len(x) * 100 for x in s])) + '\n'
+    res += 'Musical Suitability\n'
+    for j, s in enumerate(sanity):
+        res += names[j] + ': '
+        res += ', '.join(algorithm_names[i] + ' {0:.2g}'.format(x) for i, x in enumerate([sum([math.exp(z) for z in x]) / len(x) * 100 for x in s])) + '\n'
+    print(res)
+    l = 10
+    print('Distance')
+    s = []
+    for y in success:
+        s.append([])
+        for x in y:
+            s[-1].append(x[:l])
+    success = s
+    for j, s in enumerate(success):
+        f = plt.figure()
         x = np.arange(len(s[0]))
-        w = 0.8 / len(s)
+        w = 0.9 / len(s)
 
         for i, y in enumerate(s):
-            plt.bar(x + (i - len(s) / 2) * w, y, width=w)
+            plt.bar(x + (i - (len(s) - 1) / 2) * w, y, width=w)
         plt.xticks(x, [str(y) for y in x])
         plt.title('Algorithms Distance')
         plt.xlabel('Iteration')
         plt.ylabel('Distance')
         plt.legend(algorithm_names)
-
+        plt.savefig(names[j] + ' Distance.jpg')
+        plt.close(f)
     print('Cluster Distance')
+    s = []
+    for y in cluster_d:
+        s.append([])
+        for x in y:
+            s[-1].append(x[:l])
+    cluster_d = s
     for j, s in enumerate(cluster_d):
-        print(names[j])
-        print([sum(x) / len(x) * 100 for x in s])
+        f = plt.figure()
         x = np.arange(len(s[0]))
-        w = 0.8 / len(s)
-
         for i, y in enumerate(s):
-            plt.bar(x + (i - len(s) / 2) * w, y, width=w)
+            plt.bar(x + (i - (len(s) - 1) / 2) * w, y, width=w)
         plt.xticks(x, [str(y) for y in x])
         plt.title('Algorithms Cluster Distance')
         plt.xlabel('Iteration')
         plt.ylabel('Distance')
         plt.legend(algorithm_names)
+        plt.savefig(names[j] + ' Cluster Distance.jpg')
+        plt.close(f)
     print('Sanity')
+    s = []
+    for y in sanity:
+        s.append([])
+        for x in y:
+            s[-1].append(x[:l])
+    sanity = s
     for j, s in enumerate(sanity):
-        print(names[j])
-        print([sum([math.exp(z) for z in x]) / len(x) * 100 for x in s])
+        f = plt.figure()
         x = np.arange(len(s[0]))
-        w = 0.8 / len(s)
         for i, y in enumerate(s):
-            plt.bar(x + (i - len(s) / 2) * w, [math.exp(z) for z in y], width=w)
+            plt.bar(x + (i - (len(s) - 1) / 2) * w, [math.exp(z) for z in y], width=w)
         plt.title('Algorithm Musical suitability')
         plt.xticks(x, [str(y) for y in x])
         plt.xlabel('Iteration')
         plt.ylabel('Musical Suitability')
         plt.legend(algorithm_names)
+        plt.savefig(names[j] + ' Sanity.jpg')
+        plt.close(f)
