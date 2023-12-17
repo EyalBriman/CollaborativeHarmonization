@@ -321,7 +321,7 @@ if __name__ == '__main__':
                       proportional_2gram_algorithm, kemeny_clustering, kemeny_clustering_2gram]
 
         errors = [[0, 1], [1, 2], [2, 3], [3, 4]]
-        iters = 100
+        iters = 1000
         voters = [8, 16, 32]
 
         cluster_d = []
